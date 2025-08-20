@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 const {
   getCommentsByContentId,
   createComment,
@@ -9,9 +9,11 @@ const {
 
 // Public routes
 router.get('/:contentId', getCommentsByContentId);
-router.post('/', createComment);
 
-// Protected admin routes
-router.delete('/:id', authMiddleware, deleteComment);
+// User-protected routes
+router.post('/', authMiddleware, createComment);
+
+// Admin-protected routes
+router.delete('/:id', adminMiddleware, deleteComment);
 
 module.exports = router;

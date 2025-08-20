@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 const {
   getAllLore,
   getLoreById,
@@ -13,11 +13,13 @@ const {
 // Public routes
 router.get('/', getAllLore);
 router.get('/:id', getLoreById);
-router.post('/:id/like', likeLore);
 
-// Protected admin routes
-router.post('/', authMiddleware, createLore);
-router.put('/:id', authMiddleware, updateLore);
-router.delete('/:id', authMiddleware, deleteLore);
+// User-protected routes
+router.post('/:id/like', authMiddleware, likeLore);
+
+// Admin-protected routes
+router.post('/', adminMiddleware, createLore);
+router.put('/:id', adminMiddleware, updateLore);
+router.delete('/:id', adminMiddleware, deleteLore);
 
 module.exports = router;

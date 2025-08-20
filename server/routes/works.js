@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 const {
   getAllWorks,
   getWorkById,
@@ -13,11 +13,13 @@ const {
 // Public routes
 router.get('/', getAllWorks);
 router.get('/:id', getWorkById);
-router.post('/:id/like', likeWork);
 
-// Protected admin routes
-router.post('/', authMiddleware, createWork);
-router.put('/:id', authMiddleware, updateWork);
-router.delete('/:id', authMiddleware, deleteWork);
+// User-protected routes
+router.post('/:id/like', authMiddleware, likeWork);
+
+// Admin-protected routes
+router.post('/', adminMiddleware, createWork);
+router.put('/:id', adminMiddleware, updateWork);
+router.delete('/:id', adminMiddleware, deleteWork);
 
 module.exports = router;
