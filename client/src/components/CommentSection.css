@@ -155,7 +155,6 @@
   border-radius: 8px;
   border: 1px dashed var(--border-color);
 }
-}
 
 .auth-prompt {
   margin-bottom: 2rem;

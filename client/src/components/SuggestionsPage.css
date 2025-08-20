@@ -10,22 +10,49 @@
 }
 
 .suggestions-header h1 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   font-size: 2.2rem;
 }
 
 .suggestions-header p {
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   line-height: 1.6;
 }
 
+.auth-required {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.auth-required p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.auth-required a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-required a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
 .suggestions-form {
-  background: white;
+  background: var(--bg-secondary);
   padding: 2.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
 }
 
 .form-group {

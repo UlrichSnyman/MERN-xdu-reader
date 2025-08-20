@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { worksAPI } from '../services/api';
 import { Work } from '../types';
+import { useAuth } from '../context/AuthContext';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -25,6 +27,11 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleLike = async (workId: string) => {
+    if (!isAuthenticated) {
+      alert('Please login to like works');
+      return;
+    }
+    
     try {
       await worksAPI.like(workId);
       // Update the likes count locally
@@ -35,6 +42,11 @@ const HomePage: React.FC = () => {
       );
     } catch (err: any) {
       console.error('Failed to like work:', err);
+      if (err.response?.status === 401) {
+        alert('Please login to like works');
+      } else {
+        alert('Failed to like work');
+      }
     }
   };
 
