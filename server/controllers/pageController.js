@@ -1,9 +1,23 @@
 const Page = require('../models/Page');
 const Work = require('../models/Work');
+const { mockPages } = require('../mockData');
+
+// Check if database is available
+const isDemoMode = process.env.DEMO_MODE === 'true';
 
 // Get page by ID (public)
 const getPageById = async (req, res) => {
   try {
+    if (isDemoMode) {
+      // Return mock data
+      const page = mockPages.find(p => p._id === req.params.id);
+      if (!page) {
+        return res.status(404).json({ error: 'Page not found' });
+      }
+      res.json(page);
+      return;
+    }
+    
     const page = await Page.findById(req.params.id)
       .populate('work', 'title');
     
