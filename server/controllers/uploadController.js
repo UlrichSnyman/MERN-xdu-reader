@@ -102,27 +102,49 @@ const uploadPDF = async (req, res) => {
       
       await work.save();
 
-      // Split content into pages (roughly 2000 characters per page)
-      const pageSize = 2000;
+      // Split content into pages (roughly 3500 characters per page, cut at word boundaries)
+      const pageSize = 3500;
       const content = cleanedText;
-      const totalPages = Math.ceil(content.length / pageSize);
       
       const pages = [];
-      for (let i = 0; i < totalPages; i++) {
-        const startIndex = i * pageSize;
-        const endIndex = Math.min(startIndex + pageSize, content.length);
-        const pageContent = content.substring(startIndex, endIndex);
+      let currentIndex = 0;
+      let pageNumber = 1;
+      
+      while (currentIndex < content.length) {
+        let endIndex = Math.min(currentIndex + pageSize, content.length);
         
-        const page = new Page({
-          title: `${title} - Page ${i + 1}`,
-          content: pageContent,
-          work: work._id,
-          pageNumber: i + 1
-        });
+        // If we're not at the end of content, find the nearest word boundary
+        if (endIndex < content.length) {
+          // Look backwards from endIndex to find the last space, period, or newline
+          const lookbackDistance = Math.min(200, pageSize * 0.1); // Don't look back more than 200 chars or 10% of page size
+          const searchStart = Math.max(currentIndex + pageSize - lookbackDistance, currentIndex);
+          
+          for (let i = endIndex; i >= searchStart; i--) {
+            const char = content[i];
+            if (char === ' ' || char === '\n' || char === '.' || char === '!' || char === '?') {
+              endIndex = i + 1;
+              break;
+            }
+          }
+        }
         
-        await page.save();
-        work.pages.push(page._id);
-        pages.push(page);
+        const pageContent = content.substring(currentIndex, endIndex).trim();
+        
+        if (pageContent.length > 0) {
+          const page = new Page({
+            title: `${title} - Page ${pageNumber}`,
+            content: pageContent,
+            work: work._id,
+            pageNumber: pageNumber
+          });
+          
+          await page.save();
+          work.pages.push(page._id);
+          pages.push(page);
+          pageNumber++;
+        }
+        
+        currentIndex = endIndex;
       }
       
       await work.save();

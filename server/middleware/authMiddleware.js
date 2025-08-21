@@ -29,6 +29,30 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
+// Optional auth middleware - doesn't fail if no token provided
+const optionalAuthMiddleware = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      // No token provided, but continue without setting req.user
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+    const user = await User.findById(decoded.userId).select('-password');
+    
+    if (user) {
+      req.user = user;
+    }
+    
+    next();
+  } catch (error) {
+    // If token is invalid, continue without authentication
+    next();
+  }
+};
+
 // Admin-only middleware
 const adminMiddleware = async (req, res, next) => {
   try {
@@ -51,4 +75,4 @@ const adminMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { authMiddleware, adminMiddleware };
+module.exports = { authMiddleware, optionalAuthMiddleware, adminMiddleware };
