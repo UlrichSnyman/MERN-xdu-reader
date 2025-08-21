@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { chaptersAPI } from '../services/api';
 import { Chapter, ReaderSettings } from '../types';
+import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
 import './ReaderView.css';
 
 const ReaderView: React.FC = () => {
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,11 +61,21 @@ const ReaderView: React.FC = () => {
   const handleLike = async () => {
     if (!chapter) return;
     
+    if (!isAuthenticated) {
+      alert('Please login to like chapters');
+      return;
+    }
+    
     try {
       await chaptersAPI.like(chapter._id);
       setChapter({ ...chapter, likes: chapter.likes + 1 });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to like chapter:', error);
+      if (error.response?.status === 401) {
+        alert('Please login to like chapters');
+      } else {
+        alert('Failed to like chapter');
+      }
     }
   };
 

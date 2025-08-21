@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import HomePage from './components/HomePage';
 import WorkDetailPage from './components/WorkDetailPage';
@@ -15,32 +16,34 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Navbar />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/work/:id" element={<WorkDetailPage />} />
-              <Route path="/read/:chapterId" element={<ReaderView />} />
-              <Route path="/lore" element={<LoreLibrary />} />
-              <Route path="/lore/:id" element={<LoreDetailPage />} />
-              <Route path="/suggestions" element={<SuggestionsPage />} />
-              <Route path="/admin/login" element={<LoginForm />} />
-              <Route 
-                path="/admin/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Navbar />
+            <main className="main-content">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/work/:id" element={<WorkDetailPage />} />
+                <Route path="/read/:chapterId" element={<ReaderView />} />
+                <Route path="/lore" element={<LoreLibrary />} />
+                <Route path="/lore/:id" element={<LoreDetailPage />} />
+                <Route path="/suggestions" element={<SuggestionsPage />} />
+                <Route path="/login" element={<LoginForm />} />
+                <Route 
+                  path="/admin/dashboard" 
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 const {
   getChapterById,
   createChapter,
@@ -11,11 +11,13 @@ const {
 
 // Public routes
 router.get('/:id', getChapterById);
-router.post('/:id/like', likeChapter);
 
-// Protected admin routes
-router.post('/', authMiddleware, createChapter);
-router.put('/:id', authMiddleware, updateChapter);
-router.delete('/:id', authMiddleware, deleteChapter);
+// User-protected routes
+router.post('/:id/like', authMiddleware, likeChapter);
+
+// Admin-protected routes
+router.post('/', adminMiddleware, createChapter);
+router.put('/:id', adminMiddleware, updateChapter);
+router.delete('/:id', adminMiddleware, deleteChapter);
 
 module.exports = router;

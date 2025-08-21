@@ -8,7 +8,7 @@ const generateToken = (userId) => {
   });
 };
 
-// Login admin user
+// Login user
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -37,7 +37,8 @@ const login = async (req, res) => {
       token,
       user: {
         id: user._id,
-        username: user.username
+        username: user.username,
+        role: user.role
       }
     });
   } catch (error) {
@@ -46,10 +47,10 @@ const login = async (req, res) => {
   }
 };
 
-// Register admin user (for initial setup)
+// Register user
 const register = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, role = 'user' } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
@@ -66,7 +67,7 @@ const register = async (req, res) => {
     }
 
     // Create new user
-    const user = new User({ username, password });
+    const user = new User({ username, password, role });
     await user.save();
 
     // Generate token
@@ -77,7 +78,8 @@ const register = async (req, res) => {
       token,
       user: {
         id: user._id,
-        username: user.username
+        username: user.username,
+        role: user.role
       }
     });
   } catch (error) {

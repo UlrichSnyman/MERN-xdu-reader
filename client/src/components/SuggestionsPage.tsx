@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { suggestionsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './SuggestionsPage.css';
 
 const SuggestionsPage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     content: '',
     authorName: '',
@@ -22,6 +25,11 @@ const SuggestionsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      alert('Please login to submit suggestions');
+      return;
+    }
+    
     if (!formData.content.trim()) {
       alert('Please enter your suggestion');
       return;
@@ -35,7 +43,11 @@ const SuggestionsPage: React.FC = () => {
       setFormData({ content: '', authorName: '', email: '' });
     } catch (error: any) {
       console.error('Failed to submit suggestion:', error);
-      alert(error.response?.data?.error || 'Failed to submit suggestion');
+      if (error.response?.status === 401) {
+        alert('Please login to submit suggestions');
+      } else {
+        alert(error.response?.data?.error || 'Failed to submit suggestion');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -65,7 +77,12 @@ const SuggestionsPage: React.FC = () => {
         <p>We value your feedback and ideas to improve our literary collection.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="suggestions-form">
+      {!isAuthenticated ? (
+        <div className="auth-required">
+          <p>Please <Link to="/login">login</Link> to submit suggestions.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="suggestions-form">
         <div className="form-group">
           <label htmlFor="content">Your Suggestion *</label>
           <textarea
@@ -116,6 +133,7 @@ const SuggestionsPage: React.FC = () => {
           {submitting ? 'Submitting...' : 'Submit Suggestion'}
         </button>
       </form>
+      )}
     </div>
   );
 };

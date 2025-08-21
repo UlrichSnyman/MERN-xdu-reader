@@ -29,4 +29,26 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+// Admin-only middleware
+const adminMiddleware = async (req, res, next) => {
+  try {
+    // First run auth middleware
+    await new Promise((resolve, reject) => {
+      authMiddleware(req, res, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Authentication failed.' });
+  }
+};
+
+module.exports = { authMiddleware, adminMiddleware };

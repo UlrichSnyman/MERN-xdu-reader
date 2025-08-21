@@ -131,37 +131,43 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, contentType 
       <h3>Comments ({comments.length})</h3>
       
       {/* Comment Form */}
-      <form onSubmit={handleSubmit} className="comment-form">
-        <div className="form-row">
-          <input
-            type="text"
-            name="authorName"
-            placeholder="Your name"
-            value={formData.authorName}
-            onChange={handleInputChange}
-            required
-            disabled={submitting}
-          />
+      {isAuthenticated ? (
+        <form onSubmit={handleSubmit} className="comment-form">
+          <div className="form-row">
+            <input
+              type="text"
+              name="authorName"
+              placeholder="Your name"
+              value={formData.authorName}
+              onChange={handleInputChange}
+              required
+              disabled={submitting}
+            />
+          </div>
+          <div className="form-row">
+            <textarea
+              name="content"
+              placeholder="Share your thoughts..."
+              value={formData.content}
+              onChange={handleInputChange}
+              required
+              disabled={submitting}
+              rows={3}
+            />
+          </div>
+          <button 
+            type="submit" 
+            className="submit-btn"
+            disabled={submitting || !formData.authorName.trim() || !formData.content.trim()}
+          >
+            {submitting ? 'Posting...' : 'Post Comment'}
+          </button>
+        </form>
+      ) : (
+        <div className="auth-prompt">
+          <p>Please <a href="/login">login</a> to leave a comment.</p>
         </div>
-        <div className="form-row">
-          <textarea
-            name="content"
-            placeholder="Share your thoughts..."
-            value={formData.content}
-            onChange={handleInputChange}
-            required
-            disabled={submitting}
-            rows={3}
-          />
-        </div>
-        <button 
-          type="submit" 
-          className="submit-btn"
-          disabled={submitting || !formData.authorName.trim() || !formData.content.trim()}
-        >
-          {submitting ? 'Posting...' : 'Post Comment'}
-        </button>
-      </form>
+      )}
 
       {/* Comments List */}
       <div className="comments-list">

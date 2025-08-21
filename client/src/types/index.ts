@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   username: string;
+  role: 'user' | 'admin';
 }
 
 export interface Work {
@@ -64,6 +65,7 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }

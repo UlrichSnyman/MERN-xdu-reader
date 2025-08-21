@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import './LoginForm.css';
 
 const LoginForm: React.FC = () => {
+  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -11,14 +12,19 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  const { login, isAuthenticated } = useAuth();
+  const { login, register, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      navigate('/admin/dashboard');
+      // Redirect admins to dashboard, regular users to home
+      if (user?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,8 +41,12 @@ const LoginForm: React.FC = () => {
     setError(null);
 
     try {
-      await login(formData.username, formData.password);
-      navigate('/admin/dashboard');
+      if (isLogin) {
+        await login(formData.username, formData.password);
+      } else {
+        await register(formData.username, formData.password);
+      }
+      // Navigation will be handled by the useEffect
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -44,11 +54,22 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+    setFormData({ username: '', password: '' });
+  };
+
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h2>Admin Login</h2>
-        <p>Access the content management system</p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>{isLogin ? 'Login' : 'Register'}</h2>
+        <p>
+          {isLogin 
+            ? 'Sign in to interact with works and leave comments' 
+            : 'Create an account to like, comment, and suggest improvements'
+          }
+        </p>
         
         {error && (
           <div className="error-message">
@@ -56,7 +77,7 @@ const LoginForm: React.FC = () => {
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="username">Username:</label>
             <input
@@ -81,22 +102,33 @@ const LoginForm: React.FC = () => {
               onChange={handleChange}
               required
               disabled={loading}
-              autoComplete="current-password"
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
+              minLength={6}
             />
           </div>
           
           <button 
             type="submit" 
-            className="login-btn"
+            className="auth-btn"
             disabled={loading || !formData.username || !formData.password}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (isLogin ? 'Logging in...' : 'Registering...') : (isLogin ? 'Login' : 'Register')}
           </button>
         </form>
         
-        <div className="login-info">
+        <div className="auth-switch">
           <p>
-            <strong>Note:</strong> This is for authorized personnel only.
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <button type="button" onClick={toggleMode} className="switch-btn">
+              {isLogin ? 'Register here' : 'Login here'}
+            </button>
+          </p>
+        </div>
+        
+        <div className="auth-info">
+          <p>
+            <strong>Note:</strong> You need an account to like works, leave comments, or submit suggestions. 
+            Reading is always free and open to everyone.
           </p>
         </div>
       </div>

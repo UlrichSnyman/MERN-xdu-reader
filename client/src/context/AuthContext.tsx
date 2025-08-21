@@ -45,6 +45,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const register = async (username: string, password: string): Promise<void> => {
+    try {
+      const response = await authAPI.register({ username, password });
+      const { token: newToken, user: userData } = response.data;
+      
+      setToken(newToken);
+      setUser(userData);
+      
+      localStorage.setItem('authToken', newToken);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Registration failed';
+      throw new Error(message);
+    }
+  };
+
   const logout = (): void => {
     setToken(null);
     setUser(null);
@@ -58,6 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     token,
     login,
+    register,
     logout,
     isAuthenticated,
   };

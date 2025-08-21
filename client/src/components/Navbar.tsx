@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -30,19 +32,29 @@ const Navbar: React.FC = () => {
             Suggestions
           </Link>
           
+          <button 
+            onClick={toggleTheme} 
+            className="theme-toggle"
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+          
           {isAuthenticated ? (
             <div className="admin-menu">
-              <Link to="/admin/dashboard" className="nav-link admin-link">
-                Dashboard
-              </Link>
+              {user?.role === 'admin' && (
+                <Link to="/admin/dashboard" className="nav-link admin-link">
+                  Dashboard
+                </Link>
+              )}
               <span className="user-info">Welcome, {user?.username}</span>
               <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>
             </div>
           ) : (
-            <Link to="/admin/login" className="nav-link admin-link">
-              Admin Login
+            <Link to="/login" className="nav-link login-link">
+              Login
             </Link>
           )}
         </div>
