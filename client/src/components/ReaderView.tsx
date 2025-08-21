@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { pagesAPI } from '../services/api';
 import { Page, ReaderSettings } from '../types';
-import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
 import './ReaderView.css';
 
 const ReaderView: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,26 +56,7 @@ const ReaderView: React.FC = () => {
     localStorage.setItem('readerSettings', JSON.stringify(settings));
   }, [settings]);
 
-  const handleLike = async () => {
-    if (!page) return;
-    
-    if (!isAuthenticated) {
-      alert('Please login to like pages');
-      return;
-    }
-    
-    try {
-      await pagesAPI.like(page._id);
-      setPage({ ...page, likes: page.likes + 1 });
-    } catch (error: any) {
-      console.error('Failed to like page:', error);
-      if (error.response?.status === 401) {
-        alert('Please login to like pages');
-      } else {
-        alert('Failed to like page');
-      }
-    }
-  };
+  // Page likes removed - users can only like works, not individual pages
 
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;
@@ -197,7 +176,7 @@ const ReaderView: React.FC = () => {
                   onClick={settings.isPlaying ? stopTextToSpeech : startTextToSpeech}
                   className={`tts-btn ${settings.isPlaying ? 'playing' : ''}`}
                 >
-                  {settings.isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                  {settings.isPlaying ? 'Pause' : 'Play'}
                 </button>
                 
                 <div className="speed-control">
@@ -234,7 +213,7 @@ const ReaderView: React.FC = () => {
             className="settings-btn"
             onClick={() => setShowSettings(true)}
           >
-            ⚙️ Settings
+            Settings
           </button>
         </div>
         
@@ -242,9 +221,6 @@ const ReaderView: React.FC = () => {
           <h1>{page.title}</h1>
           <div className="page-meta">
             <span>Page {page.pageNumber}</span>
-            <button onClick={handleLike} className="like-btn">
-              ❤️ {page.likes}
-            </button>
           </div>
         </div>
       </div>

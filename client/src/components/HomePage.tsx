@@ -102,7 +102,7 @@ const HomePage: React.FC = () => {
                       onClick={() => handleLike(work._id)}
                       className="like-btn"
                     >
-                      ❤️ {work.likes}
+                      Like ({work.likes})
                     </button>
                   </div>
                   <div className="work-meta">
