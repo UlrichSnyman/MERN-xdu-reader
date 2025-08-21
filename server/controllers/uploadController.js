@@ -79,21 +79,63 @@ const uploadPDF = async (req, res) => {
     };
 
     const cleanedText = cleanText(pdfData.text);
+    
+    // Split content by PDF pages - use form feed characters or estimate pages
+    let pageContents = [];
+    
+    // First, try splitting by form feed characters (common in PDFs)
+    if (cleanedText.includes('\f')) {
+      pageContents = cleanedText.split('\f').filter(page => page.trim().length > 0);
+    } else {
+      // If no form feeds, estimate pages based on content length
+      // Use the number of pages from PDF metadata if available
+      const totalPages = pdfData.numpages || 1;
+      const contentLength = cleanedText.length;
+      const avgPageLength = Math.ceil(contentLength / totalPages);
+      
+      // Split content into roughly equal pages, respecting word boundaries
+      let currentIndex = 0;
+      for (let i = 0; i < totalPages && currentIndex < contentLength; i++) {
+        let endIndex = Math.min(currentIndex + avgPageLength, contentLength);
+        
+        // Find word boundary if not at end
+        if (endIndex < contentLength) {
+          const lookbackDistance = Math.min(200, avgPageLength * 0.2);
+          const searchStart = Math.max(currentIndex + avgPageLength - lookbackDistance, currentIndex);
+          
+          for (let j = endIndex; j >= searchStart; j--) {
+            const char = cleanedText[j];
+            if (char === ' ' || char === '\n' || char === '.' || char === '!' || char === '?') {
+              endIndex = j + 1;
+              break;
+            }
+          }
+        }
+        
+        const pageContent = cleanedText.substring(currentIndex, endIndex).trim();
+        if (pageContent.length > 0) {
+          pageContents.push(pageContent);
+        }
+        
+        currentIndex = endIndex;
+      }
+    }
 
     let result;
 
     if (destination === 'lore') {
-      // Create lore entry
+      // Create lore entry (combine all pages for lore)
+      const combinedContent = pageContents.join('\n\n');
       const lore = new Lore({
         title,
-        content: cleanedText,
+        content: combinedContent,
         category: category || 'general'
       });
       
       await lore.save();
       result = { type: 'lore', data: lore };
     } else {
-      // Create work with pages
+      // Create work with pages (one page per PDF page, no character limit)
       const work = new Work({
         title,
         synopsis: synopsis || `Extracted from PDF: ${req.file.originalname}`,
@@ -102,33 +144,12 @@ const uploadPDF = async (req, res) => {
       
       await work.save();
 
-      // Split content into pages (roughly 3500 characters per page, cut at word boundaries)
-      const pageSize = 3500;
-      const content = cleanedText;
-      
+      // Create pages from PDF pages (no character limit)
       const pages = [];
-      let currentIndex = 0;
-      let pageNumber = 1;
       
-      while (currentIndex < content.length) {
-        let endIndex = Math.min(currentIndex + pageSize, content.length);
-        
-        // If we're not at the end of content, find the nearest word boundary
-        if (endIndex < content.length) {
-          // Look backwards from endIndex to find the last space, period, or newline
-          const lookbackDistance = Math.min(200, pageSize * 0.1); // Don't look back more than 200 chars or 10% of page size
-          const searchStart = Math.max(currentIndex + pageSize - lookbackDistance, currentIndex);
-          
-          for (let i = endIndex; i >= searchStart; i--) {
-            const char = content[i];
-            if (char === ' ' || char === '\n' || char === '.' || char === '!' || char === '?') {
-              endIndex = i + 1;
-              break;
-            }
-          }
-        }
-        
-        const pageContent = content.substring(currentIndex, endIndex).trim();
+      for (let i = 0; i < pageContents.length; i++) {
+        const pageContent = pageContents[i];
+        const pageNumber = i + 1;
         
         if (pageContent.length > 0) {
           const page = new Page({
@@ -141,10 +162,7 @@ const uploadPDF = async (req, res) => {
           await page.save();
           work.pages.push(page._id);
           pages.push(page);
-          pageNumber++;
         }
-        
-        currentIndex = endIndex;
       }
       
       await work.save();
