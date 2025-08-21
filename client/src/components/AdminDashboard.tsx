@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI } from '../services/api';
 import { Work, Suggestion } from '../types';
@@ -7,10 +8,11 @@ import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [works, setWorks] = useState<Work[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'works' | 'suggestions' | 'create' | 'upload'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'works' | 'suggestions' | 'create' | 'upload' | 'progress'>('overview');
   
   // Form states for creating content
   const [workForm, setWorkForm] = useState({
@@ -36,6 +38,7 @@ const AdminDashboard: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [progressStats, setProgressStats] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +58,21 @@ const AdminDashboard: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const fetchProgressStats = async () => {
+    try {
+      const response = await worksAPI.getProgressStats();
+      setProgressStats(response.data);
+    } catch (error) {
+      console.error('Error fetching progress stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'progress') {
+      fetchProgressStats();
+    }
+  }, [activeTab]);
 
   const handleDeleteWork = async (workId: string) => {
     if (window.confirm('Are you sure you want to delete this work? This action cannot be undone.')) {
@@ -152,8 +170,11 @@ const AdminDashboard: React.FC = () => {
         const worksResponse = await worksAPI.getAll();
         setWorks(worksResponse.data);
       } else {
-        // For lore uploads, we could redirect to lore library or just show success
+        // For lore uploads, navigate to lore library
         console.log('Lore entry created successfully:', resultData);
+        setTimeout(() => {
+          navigate('/lore');
+        }, 1500); // Give user time to see success message
       }
     } catch (error) {
       console.error('Error uploading PDF:', error);
@@ -209,6 +230,12 @@ const AdminDashboard: React.FC = () => {
           onClick={() => setActiveTab('upload')}
         >
           Upload PDF
+        </button>
+        <button
+          className={activeTab === 'progress' ? 'active' : ''}
+          onClick={() => setActiveTab('progress')}
+        >
+          Reading Progress
         </button>
       </nav>
 
@@ -536,6 +563,61 @@ const AdminDashboard: React.FC = () => {
               {submitting ? 'Processing...' : 'Upload and Process PDF'}
             </button>
           </form>
+        </div>
+      )}
+
+      {activeTab === 'progress' && (
+        <div className="dashboard-progress">
+          <div className="section-header">
+            <h3>Reading Progress</h3>
+            <p>View how far readers have progressed through your works</p>
+          </div>
+          
+          <div className="progress-list">
+            {progressStats.map(work => (
+              <div key={work.workId} className="progress-work">
+                <div className="work-header">
+                  <h4>{work.title}</h4>
+                  <span className="total-pages">{work.totalPages} pages</span>
+                </div>
+                
+                {work.readers.length > 0 ? (
+                  <div className="readers-list">
+                    {work.readers.map((reader: any, index: number) => (
+                      <div key={index} className="reader-progress">
+                        <div className="reader-info">
+                          <span className="reader-name">{reader.username}</span>
+                          <span className="last-read">
+                            Last read: {new Date(reader.lastReadAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="progress-bar">
+                          <div 
+                            className="progress-fill" 
+                            style={{ width: `${reader.progressPercentage}%` }}
+                          ></div>
+                        </div>
+                        <div className="progress-stats">
+                          <span>{reader.pagesRead}/{work.totalPages} pages ({reader.progressPercentage}%)</span>
+                          <span>Current page: {reader.currentPage}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-readers">
+                    <p>No readers have started this work yet.</p>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {progressStats.length === 0 && (
+              <div className="no-progress">
+                <p>No reading progress data available yet.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

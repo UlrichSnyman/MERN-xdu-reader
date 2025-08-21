@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
+const { authMiddleware, optionalAuthMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 const {
   getAllLore,
   getLoreById,
@@ -12,7 +12,9 @@ const {
 
 // Public routes
 router.get('/', getAllLore);
-router.get('/:id', getLoreById);
+
+// Routes that can benefit from authentication but don't require it
+router.get('/:id', optionalAuthMiddleware, getLoreById);
 
 // User-protected routes
 router.post('/:id/like', authMiddleware, likeLore);

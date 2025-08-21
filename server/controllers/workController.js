@@ -221,6 +221,34 @@ const updateReadingProgress = async (req, res) => {
   }
 };
 
+// Get reading progress stats for admin dashboard
+const getReadingProgressStats = async (req, res) => {
+  try {
+    const works = await Work.find()
+      .populate('readingProgress.user', 'username')
+      .populate('readingProgress.currentPage', 'pageNumber title')
+      .select('title readingProgress pages');
+    
+    const stats = works.map(work => ({
+      workId: work._id,
+      title: work.title,
+      totalPages: work.pages.length,
+      readers: work.readingProgress.map(progress => ({
+        username: progress.user.username,
+        currentPage: progress.currentPage ? progress.currentPage.pageNumber : 0,
+        pagesRead: progress.pagesRead.length,
+        lastReadAt: progress.lastReadAt,
+        progressPercentage: Math.round((progress.pagesRead.length / work.pages.length) * 100)
+      }))
+    }));
+    
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching reading progress stats:', error);
+    res.status(500).json({ error: 'Server error while fetching reading progress stats' });
+  }
+};
+
 module.exports = {
   getAllWorks,
   getWorkById,
@@ -228,5 +256,6 @@ module.exports = {
   updateWork,
   deleteWork,
   likeWork,
-  updateReadingProgress
+  updateReadingProgress,
+  getReadingProgressStats
 };

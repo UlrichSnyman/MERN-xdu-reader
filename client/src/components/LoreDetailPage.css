@@ -1,0 +1,218 @@
+.lore-detail-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.back-link {
+  color: var(--accent-color, #3498db);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  display: inline-block;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: var(--accent-hover, #2980b9);
+}
+
+.lore-header {
+  margin-bottom: 3rem;
+}
+
+.lore-info {
+  margin-top: 1rem;
+}
+
+.lore-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.lore-category {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.lore-date {
+  color: var(--text-muted, #7f8c8d);
+  font-size: 0.9rem;
+}
+
+.lore-info h1 {
+  font-size: 2.5rem;
+  color: var(--text-primary, #2c3e50);
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.lore-stats {
+  display: flex;
+  gap: 2rem;
+  font-size: 1rem;
+  color: var(--text-muted, #7f8c8d);
+  margin-bottom: 1.5rem;
+}
+
+.lore-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.like-btn {
+  background: var(--bg-tertiary, #f8f9fa);
+  border: 1px solid var(--border-color, #ddd);
+  color: var(--text-primary, #2c3e50);
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.like-btn:hover:not(:disabled) {
+  background-color: var(--accent-color, #3498db);
+  color: white;
+  border-color: var(--accent-color, #3498db);
+}
+
+.like-btn.liked {
+  background-color: var(--success-color, #27ae60);
+  color: white;
+  border-color: var(--success-color, #27ae60);
+}
+
+.like-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lore-content-section {
+  background: var(--bg-secondary, white);
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+  margin-bottom: 3rem;
+  border: 1px solid var(--border-color, #e9ecef);
+}
+
+.lore-content {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-secondary, #555);
+}
+
+.lore-content p {
+  margin-bottom: 1.5rem;
+}
+
+.lore-content p:last-child {
+  margin-bottom: 0;
+}
+
+.lore-content p:empty {
+  margin-bottom: 0.75rem;
+}
+
+.comments-section {
+  background: var(--bg-secondary, white);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+  border: 1px solid var(--border-color, #e9ecef);
+}
+
+.loading-container,
+.error-container {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.loading-spinner {
+  border: 3px solid var(--border-color, #ecf0f1);
+  border-top: 3px solid var(--accent-color, #3498db);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container h2 {
+  color: var(--danger-color, #e74c3c);
+  margin-bottom: 1rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .lore-detail-page {
+    padding: 1.5rem 1rem;
+  }
+  
+  .lore-info h1 {
+    font-size: 2rem;
+  }
+  
+  .lore-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .lore-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .lore-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .lore-content-section {
+    padding: 2rem 1.5rem;
+  }
+  
+  .comments-section {
+    padding: 1.5rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .lore-detail-page {
+    background: var(--bg-primary-dark, #1a1a1a);
+    color: var(--text-primary-dark, #e0e0e0);
+  }
+  
+  .lore-content-section,
+  .comments-section {
+    background: var(--bg-secondary-dark, #2d2d2d);
+    border-color: var(--border-color-dark, #404040);
+  }
+  
+  .lore-info h1 {
+    color: var(--text-primary-dark, #e0e0e0);
+  }
+  
+  .lore-content {
+    color: var(--text-secondary-dark, #b0b0b0);
+  }
+}

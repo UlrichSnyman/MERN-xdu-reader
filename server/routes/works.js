@@ -8,7 +8,8 @@ const {
   updateWork,
   deleteWork,
   likeWork,
-  updateReadingProgress
+  updateReadingProgress,
+  getReadingProgressStats
 } = require('../controllers/workController');
 
 // Public routes
@@ -25,5 +26,6 @@ router.post('/progress', authMiddleware, updateReadingProgress);
 router.post('/', adminMiddleware, createWork);
 router.put('/:id', adminMiddleware, updateWork);
 router.delete('/:id', adminMiddleware, deleteWork);
+router.get('/admin/progress-stats', adminMiddleware, getReadingProgressStats);
 
 module.exports = router;
