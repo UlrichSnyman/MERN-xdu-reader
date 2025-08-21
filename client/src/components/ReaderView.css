@@ -3,6 +3,7 @@
   margin: 0 auto;
   padding: 2rem 1rem;
   min-height: 100vh;
+  background-color: var(--bg-primary);
 }
 
 .reader-header {
@@ -17,80 +18,81 @@
 }
 
 .back-link {
-  color: #3498db;
+  color: var(--accent-color);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: var(--transition-smooth);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
 }
 
 .back-link:hover {
-  color: #2980b9;
+  color: var(--accent-hover);
+  background-color: var(--bg-tertiary);
 }
 
 .settings-btn {
-  background-color: #95a5a6;
+  background-color: var(--accent-color);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-smooth);
 }
 
 .settings-btn:hover {
-  background-color: #7f8c8d;
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
 }
 
-.chapter-info h1 {
-  color: #2c3e50;
+.page-info h1 {
+  color: var(--text-primary);
   margin-bottom: 1rem;
   font-size: 2rem;
   line-height: 1.3;
 }
 
-.chapter-meta {
+.page-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #7f8c8d;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
-.like-btn {
-  background: none;
-  border: 1px solid #ecf0f1;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.like-btn:hover {
-  background-color: #ecf0f1;
-  border-color: #bdc3c7;
-}
-
 .reader-content {
-  background: white;
+  background: var(--bg-secondary);
   padding: 3rem 2rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow);
   margin-bottom: 2rem;
   line-height: 1.8;
-  color: #2c3e50;
+  color: var(--text-primary);
+  transition: var(--transition-smooth);
+  border: 1px solid var(--border-color);
 }
 
+/* Improved text rendering - closer to PDF appearance */
 .reader-content p {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
 }
 
 .reader-content p:last-child {
   margin-bottom: 0;
 }
 
-.chapter-navigation {
+/* Remove excessive line breaks between sentences */
+.reader-content {
+  white-space: pre-line;
+}
+
+.page-navigation {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -98,25 +100,28 @@
 }
 
 .nav-btn {
-  background-color: #3498db;
+  background: var(--gradient-primary);
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-smooth);
   flex: 1;
   max-width: 200px;
 }
 
 .nav-btn:hover:not(:disabled) {
-  background-color: #2980b9;
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
 }
 
 .nav-btn:disabled {
-  background-color: #bdc3c7;
+  background-color: var(--text-muted);
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .prev-btn {
@@ -127,35 +132,40 @@
   margin-left: auto;
 }
 
-/* Settings Panel */
+/* Enhanced Settings Panel */
 .settings-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  backdrop-filter: blur(4px);
 }
 
 .settings-panel {
-  background: white;
+  background: var(--bg-secondary);
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 16px;
+  max-width: 400px;
   width: 100%;
-  max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
+  box-shadow: var(--shadow-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .settings-panel h3 {
   margin-bottom: 1.5rem;
-  color: #2c3e50;
+  color: var(--text-primary);
   text-align: center;
+  font-size: 1.5rem;
 }
 
 .setting-group {
@@ -165,13 +175,44 @@
 .setting-group label {
   display: block;
   margin-bottom: 0.8rem;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
+  font-size: 1rem;
 }
 
+/* Enhanced slider with stopping points */
 .setting-group input[type="range"] {
   width: 100%;
   margin-bottom: 0.5rem;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.setting-group input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: var(--transition-smooth);
+}
+
+.setting-group input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent-hover);
+  transform: scale(1.1);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
 }
 
 .font-buttons {
@@ -182,23 +223,26 @@
 
 .font-buttons button {
   padding: 0.6rem;
-  border: 2px solid #ecf0f1;
-  background: white;
-  border-radius: 6px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-smooth);
 }
 
 .font-buttons button:hover {
-  border-color: #3498db;
+  border-color: var(--accent-color);
+  background: var(--bg-tertiary);
 }
 
 .font-buttons button.active {
-  background-color: #3498db;
+  background: var(--accent-color);
   color: white;
-  border-color: #3498db;
+  border-color: var(--accent-color);
 }
 
+/* TTS Controls */
 .tts-controls {
   display: flex;
   flex-direction: column;
@@ -206,81 +250,73 @@
 }
 
 .tts-btn {
-  background-color: #27ae60;
+  background-color: var(--success-color);
   color: white;
   border: none;
   padding: 0.8rem 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-smooth);
 }
 
 .tts-btn:hover {
-  background-color: #219a52;
+  background-color: var(--success-hover);
+  transform: translateY(-1px);
 }
 
 .tts-btn.playing {
-  background-color: #e74c3c;
+  background-color: var(--danger-color);
 }
 
 .tts-btn.playing:hover {
-  background-color: #c0392b;
+  background-color: var(--danger-hover);
 }
 
 .speed-control {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.speed-control label {
-  font-size: 0.9rem;
-  margin-bottom: 0.3rem;
-}
-
-.close-settings {
-  width: 100%;
-  background-color: #95a5a6;
-  color: white;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
   margin-top: 1rem;
 }
 
-.close-settings:hover {
-  background-color: #7f8c8d;
+.speed-control label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
+.close-settings {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 1rem;
+  width: 100%;
+  transition: var(--transition-smooth);
+}
+
+.close-settings:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* Loading and Error States */
 .loading-container,
 .error-container {
   text-align: center;
   padding: 3rem 1rem;
-}
-
-.loading-spinner {
-  border: 3px solid #ecf0f1;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .error-container h2 {
-  color: #e74c3c;
+  color: var(--danger-color);
   margin-bottom: 1rem;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
   .reader-view {
     padding: 1rem 0.5rem;
@@ -290,11 +326,11 @@
     padding: 2rem 1rem;
   }
   
-  .chapter-info h1 {
+  .page-info h1 {
     font-size: 1.5rem;
   }
   
-  .chapter-navigation {
+  .page-navigation {
     flex-direction: column;
   }
   

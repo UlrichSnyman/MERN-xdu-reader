@@ -140,16 +140,26 @@ const ReaderView: React.FC = () => {
           <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
             <h3>Reader Settings</h3>
             
-            {/* Font Size */}
+            {/* Font Size with Stopping Points */}
             <div className="setting-group">
               <label>Font Size: {settings.fontSize}px</label>
               <input
                 type="range"
                 min="12"
                 max="24"
+                step="2"
                 value={settings.fontSize}
                 onChange={(e) => setSettings(prev => ({ ...prev, fontSize: parseInt(e.target.value) }))}
               />
+              <div className="slider-labels">
+                <span>12px</span>
+                <span>14px</span>
+                <span>16px</span>
+                <span>18px</span>
+                <span>20px</span>
+                <span>22px</span>
+                <span>24px</span>
+              </div>
             </div>
             
             {/* Font Family */}
@@ -185,10 +195,18 @@ const ReaderView: React.FC = () => {
                     type="range"
                     min="0.6"
                     max="3"
-                    step="0.1"
+                    step="0.2"
                     value={settings.speechRate}
                     onChange={(e) => setSettings(prev => ({ ...prev, speechRate: parseFloat(e.target.value) }))}
                   />
+                  <div className="slider-labels">
+                    <span>0.6x</span>
+                    <span>1.0x</span>
+                    <span>1.5x</span>
+                    <span>2.0x</span>
+                    <span>2.5x</span>
+                    <span>3.0x</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -226,8 +244,15 @@ const ReaderView: React.FC = () => {
       </div>
 
       <div className="reader-content" ref={contentRef} style={contentStyle}>
-        {page.content.split('\n').map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
+        {page.content.split('\n\n').map((paragraph, index) => (
+          <p key={index}>
+            {paragraph.split('\n').map((line, lineIndex) => (
+              <span key={lineIndex}>
+                {line}
+                {lineIndex < paragraph.split('\n').length - 1 && ' '}
+              </span>
+            ))}
+          </p>
         ))}
       </div>
 
