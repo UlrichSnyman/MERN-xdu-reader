@@ -139,14 +139,22 @@ const AdminDashboard: React.FC = () => {
       if (uploadForm.category) formData.append('category', uploadForm.category);
 
       const response = await uploadAPI.uploadPDF(formData);
-      alert(`PDF processed successfully! Created ${response.data.result.type}: ${response.data.result.data.title}`);
+      const resultType = response.data.result.type;
+      const resultData = response.data.result.data;
+      
+      alert(`PDF processed successfully! Created ${resultType}: ${resultData.title}`);
       
       setUploadForm({ title: '', synopsis: '', destination: 'library', category: 'general' });
       setSelectedFile(null);
       
-      // Refresh works
-      const worksResponse = await worksAPI.getAll();
-      setWorks(worksResponse.data);
+      // Only refresh works if we uploaded to library, not lore
+      if (uploadForm.destination === 'library') {
+        const worksResponse = await worksAPI.getAll();
+        setWorks(worksResponse.data);
+      } else {
+        // For lore uploads, we could redirect to lore library or just show success
+        console.log('Lore entry created successfully:', resultData);
+      }
     } catch (error) {
       console.error('Error uploading PDF:', error);
       alert('Failed to upload PDF');
@@ -250,7 +258,7 @@ const AdminDashboard: React.FC = () => {
                   <p>{work.synopsis}</p>
                   <div className="work-meta">
                     <span className="category">{work.category}</span>
-                    <span className="likes">❤️ {work.likes}</span>
+                    <span className="likes">Likes: {work.likes}</span>
                     <span className="date">
                       {new Date(work.createdAt).toLocaleDateString()}
                     </span>

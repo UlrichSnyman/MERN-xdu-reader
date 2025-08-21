@@ -83,11 +83,15 @@ const HomePage: React.FC = () => {
           <div className="works-grid">
             {works.map((work) => (
               <div key={work._id} className="work-card">
-                {work.coverImage && (
-                  <div className="work-cover">
+                <div className="work-cover">
+                  {work.coverImage ? (
                     <img src={work.coverImage} alt={work.title} />
-                  </div>
-                )}
+                  ) : (
+                    <div className="work-cover-placeholder">
+                      {work.title.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
                 <div className="work-content">
                   <h3>{work.title}</h3>
                   <span className="work-category">{work.category}</span>
@@ -96,13 +100,21 @@ const HomePage: React.FC = () => {
                   )}
                   <div className="work-actions">
                     <Link to={`/work/${work._id}`} className="read-btn">
-                      Read
+                      Browse
                     </Link>
+                    {Array.isArray(work.pages) && work.pages.length > 0 && (
+                      <Link 
+                        to={`/read/${typeof work.pages[0] === 'string' ? work.pages[0] : work.pages[0]._id}`} 
+                        className="read-btn read-first"
+                      >
+                        Read First
+                      </Link>
+                    )}
                     <button 
                       onClick={() => handleLike(work._id)}
                       className="like-btn"
                     >
-                      ❤️ {work.likes}
+                      Like ({work.likes})
                     </button>
                   </div>
                   <div className="work-meta">
