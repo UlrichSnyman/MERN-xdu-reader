@@ -64,8 +64,8 @@ const WorkDetailPage: React.FC = () => {
               <p className="work-synopsis">{work.synopsis}</p>
             )}
             <div className="work-stats">
-              <span>❤️ {work.likes} likes</span>
-              <span>📚 {Array.isArray(work.pages) ? work.pages.length : 0} pages</span>
+              <span>{work.likes} likes</span>
+              <span>{Array.isArray(work.pages) ? work.pages.length : 0} pages</span>
             </div>
           </div>
         </div>

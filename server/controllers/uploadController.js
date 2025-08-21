@@ -61,13 +61,32 @@ const uploadPDF = async (req, res) => {
     // Clean up the uploaded file
     fs.unlinkSync(req.file.path);
 
+    // Clean the extracted text to remove page numbers and improve formatting
+    const cleanText = (text) => {
+      return text
+        // Remove standalone page numbers (e.g., "1", "2", "Page 1", etc.)
+        .replace(/^\s*(\d+|Page\s+\d+)\s*$/gm, '')
+        // Remove page headers/footers that are repeated
+        .replace(/\n\s*\d+\s*\n/g, '\n')
+        // Remove excessive whitespace but preserve paragraph breaks
+        .replace(/\n\s*\n\s*\n/g, '\n\n')
+        // Remove leading/trailing whitespace from each line
+        .split('\n')
+        .map(line => line.trim())
+        .join('\n')
+        // Remove empty lines at start and end
+        .trim();
+    };
+
+    const cleanedText = cleanText(pdfData.text);
+
     let result;
 
     if (destination === 'lore') {
       // Create lore entry
       const lore = new Lore({
         title,
-        content: pdfData.text,
+        content: cleanedText,
         category: category || 'general'
       });
       
@@ -85,7 +104,7 @@ const uploadPDF = async (req, res) => {
 
       // Split content into pages (roughly 2000 characters per page)
       const pageSize = 2000;
-      const content = pdfData.text;
+      const content = cleanedText;
       const totalPages = Math.ceil(content.length / pageSize);
       
       const pages = [];

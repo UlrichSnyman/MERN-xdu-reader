@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { pagesAPI } from '../services/api';
 import { Page, ReaderSettings } from '../types';
-import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
 import './ReaderView.css';
 
 const ReaderView: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +17,10 @@ const ReaderView: React.FC = () => {
     fontFamily: 'default',
     isPlaying: false,
     speechRate: 1.0,
+    selectedVoice: '',
   });
+  
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -41,6 +42,30 @@ const ReaderView: React.FC = () => {
     fetchPage();
   }, [pageId]);
 
+  useEffect(() => {
+    // Load available voices
+    const loadVoices = () => {
+      if ('speechSynthesis' in window) {
+        const voices = speechSynthesis.getVoices();
+        setAvailableVoices(voices);
+        if (voices.length > 0 && !settings.selectedVoice) {
+          setSettings(prev => ({ ...prev, selectedVoice: voices[0].name }));
+        }
+      }
+    };
+
+    loadVoices();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, [settings.selectedVoice]);
+
   // Load settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem('readerSettings');
@@ -58,26 +83,7 @@ const ReaderView: React.FC = () => {
     localStorage.setItem('readerSettings', JSON.stringify(settings));
   }, [settings]);
 
-  const handleLike = async () => {
-    if (!page) return;
-    
-    if (!isAuthenticated) {
-      alert('Please login to like pages');
-      return;
-    }
-    
-    try {
-      await pagesAPI.like(page._id);
-      setPage({ ...page, likes: page.likes + 1 });
-    } catch (error: any) {
-      console.error('Failed to like page:', error);
-      if (error.response?.status === 401) {
-        alert('Please login to like pages');
-      } else {
-        alert('Failed to like page');
-      }
-    }
-  };
+  // Page likes removed - users can only like works, not individual pages
 
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;
@@ -90,6 +96,12 @@ const ReaderView: React.FC = () => {
       utterance.rate = settings.speechRate;
       utterance.pitch = 1;
       utterance.volume = 1;
+      
+      // Set selected voice
+      const selectedVoice = availableVoices.find(voice => voice.name === settings.selectedVoice);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
       
       utterance.onstart = () => {
         setSettings(prev => ({ ...prev, isPlaying: true }));
@@ -161,16 +173,26 @@ const ReaderView: React.FC = () => {
           <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
             <h3>Reader Settings</h3>
             
-            {/* Font Size */}
+            {/* Font Size with Stopping Points */}
             <div className="setting-group">
               <label>Font Size: {settings.fontSize}px</label>
               <input
                 type="range"
                 min="12"
                 max="24"
+                step="2"
                 value={settings.fontSize}
                 onChange={(e) => setSettings(prev => ({ ...prev, fontSize: parseInt(e.target.value) }))}
               />
+              <div className="slider-labels">
+                <span>12px</span>
+                <span>14px</span>
+                <span>16px</span>
+                <span>18px</span>
+                <span>20px</span>
+                <span>22px</span>
+                <span>24px</span>
+              </div>
             </div>
             
             {/* Font Family */}
@@ -193,11 +215,27 @@ const ReaderView: React.FC = () => {
             <div className="setting-group">
               <label>Text-to-Speech:</label>
               <div className="tts-controls">
+                {/* Voice Selection */}
+                <div className="voice-control">
+                  <label>Voice:</label>
+                  <select
+                    value={settings.selectedVoice}
+                    onChange={(e) => setSettings(prev => ({ ...prev, selectedVoice: e.target.value }))}
+                    className="voice-select"
+                  >
+                    {availableVoices.map((voice) => (
+                      <option key={voice.name} value={voice.name}>
+                        {voice.name} ({voice.lang})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
                 <button
                   onClick={settings.isPlaying ? stopTextToSpeech : startTextToSpeech}
                   className={`tts-btn ${settings.isPlaying ? 'playing' : ''}`}
                 >
-                  {settings.isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                  {settings.isPlaying ? 'Pause' : 'Play'}
                 </button>
                 
                 <div className="speed-control">
@@ -206,10 +244,18 @@ const ReaderView: React.FC = () => {
                     type="range"
                     min="0.6"
                     max="3"
-                    step="0.1"
+                    step="0.2"
                     value={settings.speechRate}
                     onChange={(e) => setSettings(prev => ({ ...prev, speechRate: parseFloat(e.target.value) }))}
                   />
+                  <div className="slider-labels">
+                    <span>0.6x</span>
+                    <span>1.0x</span>
+                    <span>1.5x</span>
+                    <span>2.0x</span>
+                    <span>2.5x</span>
+                    <span>3.0x</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -234,7 +280,7 @@ const ReaderView: React.FC = () => {
             className="settings-btn"
             onClick={() => setShowSettings(true)}
           >
-            ⚙️ Settings
+            Settings
           </button>
         </div>
         
@@ -242,16 +288,20 @@ const ReaderView: React.FC = () => {
           <h1>{page.title}</h1>
           <div className="page-meta">
             <span>Page {page.pageNumber}</span>
-            <button onClick={handleLike} className="like-btn">
-              ❤️ {page.likes}
-            </button>
           </div>
         </div>
       </div>
 
       <div className="reader-content" ref={contentRef} style={contentStyle}>
-        {page.content.split('\n').map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
+        {page.content.split('\n\n').map((paragraph, index) => (
+          <p key={index}>
+            {paragraph.split('\n').map((line, lineIndex) => (
+              <span key={lineIndex}>
+                {line}
+                {lineIndex < paragraph.split('\n').length - 1 && ' '}
+              </span>
+            ))}
+          </p>
         ))}
       </div>
 

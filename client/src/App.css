@@ -1,42 +1,46 @@
-/* CSS Variables for Theming */
+/* CSS Variables for Theming - Blueish, sleek design */
 :root[data-theme="light"] {
-  --bg-primary: #f8f9fa;
+  --bg-primary: #f5f7fa;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #ecf0f1;
-  --text-primary: #2c3e50;
-  --text-secondary: #7f8c8d;
-  --text-muted: #95a5a6;
-  --border-color: #ecf0f1;
-  --accent-color: #3498db;
-  --accent-hover: #2980b9;
-  --success-color: #27ae60;
-  --success-hover: #229954;
-  --danger-color: #e74c3c;
-  --danger-hover: #c0392b;
-  --warning-color: #f39c12;
-  --overlay-bg: rgba(0, 0, 0, 0.7);
-  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --bg-tertiary: #e8f2ff;
+  --text-primary: #1a365d;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --border-color: #e2e8f0;
+  --accent-color: #3182ce;
+  --accent-hover: #2c5aa0;
+  --success-color: #38a169;
+  --success-hover: #2f855a;
+  --danger-color: #e53e3e;
+  --danger-hover: #c53030;
+  --warning-color: #dd6b20;
+  --overlay-bg: rgba(26, 54, 93, 0.8);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root[data-theme="dark"] {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2d2d2d;
-  --bg-tertiary: #3a3a3a;
-  --text-primary: #e8e8e8;
-  --text-secondary: #b0b0b0;
-  --text-muted: #888888;
-  --border-color: #404040;
-  --accent-color: #4a9eff;
-  --accent-hover: #3d8bdb;
-  --success-color: #2ecc71;
-  --success-hover: #27ae60;
-  --danger-color: #e74c3c;
-  --danger-hover: #c0392b;
-  --warning-color: #f39c12;
-  --overlay-bg: rgba(0, 0, 0, 0.8);
-  --shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a202c;
+  --bg-tertiary: #2d3748;
+  --text-primary: #f7fafc;
+  --text-secondary: #cbd5e0;
+  --text-muted: #a0aec0;
+  --border-color: #4a5568;
+  --accent-color: #63b3ed;
+  --accent-hover: #4299e1;
+  --success-color: #68d391;
+  --success-hover: #48bb78;
+  --danger-color: #fc8181;
+  --danger-hover: #f56565;
+  --warning-color: #fbb86b;
+  --overlay-bg: rgba(15, 20, 25, 0.9);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.4);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -53,7 +57,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: var(--transition-smooth);
 }
 
 .App {
@@ -67,7 +71,7 @@ body {
   padding-top: 0;
 }
 
-/* Global loading spinner */
+/* Global loading spinner with smooth animation */
 .loading-spinner {
   border: 3px solid var(--bg-tertiary);
   border-top: 3px solid var(--accent-color);
@@ -95,13 +99,47 @@ body {
 .mt-2 { margin-top: 2rem; }
 .mt-3 { margin-top: 3rem; }
 
-/* Accessibility improvements */
+/* Accessibility improvements with smooth transitions */
 button:focus,
 input:focus,
 textarea:focus,
 select:focus {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
+  transition: var(--transition-smooth);
+}
+
+/* Global button styles for consistent theming */
+button {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  font-family: inherit;
+}
+
+button:hover {
+  background-color: var(--bg-tertiary);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+}
+
+button.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: var(--shadow-hover);
 }
 
 /* Responsive helpers */

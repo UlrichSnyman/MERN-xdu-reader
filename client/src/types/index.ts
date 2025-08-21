@@ -75,6 +75,7 @@ export interface ReaderSettings {
   fontFamily: string;
   isPlaying: boolean;
   speechRate: number;
+  selectedVoice: string;
 }
 
 export interface CommentFormData {
