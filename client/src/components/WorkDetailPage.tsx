@@ -65,39 +65,39 @@ const WorkDetailPage: React.FC = () => {
             )}
             <div className="work-stats">
               <span>❤️ {work.likes} likes</span>
-              <span>📚 {Array.isArray(work.chapters) ? work.chapters.length : 0} chapters</span>
+              <span>📚 {Array.isArray(work.pages) ? work.pages.length : 0} pages</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="chapters-section">
-        <h2>Chapters</h2>
-        {Array.isArray(work.chapters) && work.chapters.length > 0 ? (
-          <div className="chapters-list">
-            {work.chapters.map((chapter, index) => (
-              <div key={typeof chapter === 'string' ? chapter : chapter._id} className="chapter-item">
-                <div className="chapter-info">
+      <div className="pages-section">
+        <h2>Pages</h2>
+        {Array.isArray(work.pages) && work.pages.length > 0 ? (
+          <div className="pages-list">
+            {work.pages.map((page, index) => (
+              <div key={typeof page === 'string' ? page : page._id} className="page-item">
+                <div className="page-info">
                   <h3>
-                    Chapter {index + 1}: {typeof chapter === 'string' ? 'Loading...' : chapter.title}
+                    Page {index + 1}: {typeof page === 'string' ? 'Loading...' : page.title}
                   </h3>
-                  {typeof chapter !== 'string' && (
-                    <p className="chapter-date">
-                      Added: {new Date(chapter.createdAt).toLocaleDateString()}
+                  {typeof page !== 'string' && (
+                    <p className="page-date">
+                      Added: {new Date(page.createdAt).toLocaleDateString()}
                     </p>
                   )}
                 </div>
                 <Link 
-                  to={`/read/${typeof chapter === 'string' ? chapter : chapter._id}`}
-                  className="read-chapter-btn"
+                  to={`/read/${typeof page === 'string' ? page : page._id}`}
+                  className="read-page-btn"
                 >
-                  Read Chapter
+                  Read Page
                 </Link>
               </div>
             ))}
           </div>
         ) : (
-          <p className="no-chapters">No chapters available yet.</p>
+          <p className="no-pages">No pages available yet.</p>
         )}
       </div>
     </div>

@@ -14,9 +14,9 @@ const workSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  chapters: [{
+  pages: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Chapter'
+    ref: 'Page'
   }],
   likes: {
     type: Number,
@@ -24,8 +24,8 @@ const workSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['book', 'short-story'],
-    default: 'book'
+    enum: ['library', 'lore'],
+    default: 'library'
   }
 }, {
   timestamps: true

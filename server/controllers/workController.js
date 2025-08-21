@@ -1,5 +1,5 @@
 const Work = require('../models/Work');
-const Chapter = require('../models/Chapter');
+const Page = require('../models/Page');
 
 // Get all works (public)
 const getAllWorks = async (req, res) => {
@@ -15,14 +15,14 @@ const getAllWorks = async (req, res) => {
   }
 };
 
-// Get single work with chapters (public)
+// Get single work with pages (public)
 const getWorkById = async (req, res) => {
   try {
     const work = await Work.findById(req.params.id)
       .populate({
-        path: 'chapters',
-        select: 'title chapterNumber createdAt',
-        options: { sort: { chapterNumber: 1 } }
+        path: 'pages',
+        select: 'title pageNumber createdAt',
+        options: { sort: { pageNumber: 1 } }
       });
     
     if (!work) {
@@ -91,13 +91,13 @@ const deleteWork = async (req, res) => {
       return res.status(404).json({ error: 'Work not found' });
     }
     
-    // Delete all chapters associated with this work
-    await Chapter.deleteMany({ work: work._id });
+    // Delete all pages associated with this work
+    await Page.deleteMany({ work: work._id });
     
     // Delete the work
     await Work.findByIdAndDelete(req.params.id);
     
-    res.json({ message: 'Work and associated chapters deleted successfully' });
+    res.json({ message: 'Work and associated pages deleted successfully' });
   } catch (error) {
     console.error('Error deleting work:', error);
     res.status(500).json({ error: 'Server error while deleting work' });
