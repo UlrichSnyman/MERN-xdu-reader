@@ -162,10 +162,21 @@
   flex-shrink: 0;
 }
 
-.like-btn:hover {
+.like-btn:hover:not(:disabled) {
   background-color: var(--accent-color);
   color: white;
   border-color: var(--accent-color);
+}
+
+.like-btn.liked {
+  background-color: var(--success-color);
+  color: white;
+  border-color: var(--success-color);
+}
+
+.like-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .work-meta {

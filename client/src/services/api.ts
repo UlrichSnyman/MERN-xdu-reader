@@ -39,6 +39,7 @@ export const worksAPI = {
   update: (id: string, workData: any) => api.put(`/works/${id}`, workData),
   delete: (id: string) => api.delete(`/works/${id}`),
   like: (id: string) => api.post(`/works/${id}/like`),
+  updateProgress: (workId: string, pageId: string) => api.post('/works/progress', { workId, pageId }),
 };
 
 export const pagesAPI = {

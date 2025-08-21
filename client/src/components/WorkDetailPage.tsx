@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { worksAPI } from '../services/api';
 import { Work } from '../types';
+import { useAuth } from '../context/AuthContext';
 import './WorkDetailPage.css';
 
 const WorkDetailPage: React.FC = () => {
@@ -9,6 +10,7 @@ const WorkDetailPage: React.FC = () => {
   const [work, setWork] = useState<Work | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchWork = async () => {
@@ -26,6 +28,33 @@ const WorkDetailPage: React.FC = () => {
 
     fetchWork();
   }, [id]);
+
+  const handleLike = async () => {
+    if (!work) return;
+    
+    if (!isAuthenticated) {
+      alert('Please login to like works');
+      return;
+    }
+    
+    try {
+      const response = await worksAPI.like(work._id);
+      setWork(prev => prev ? { 
+        ...prev, 
+        likes: response.data.likes,
+        hasLiked: response.data.hasLiked 
+      } as any : null);
+    } catch (err: any) {
+      console.error('Failed to like work:', err);
+      if (err.response?.status === 401) {
+        alert('Please login to like works');
+      } else if (err.response?.status === 400) {
+        alert(err.response.data.error || 'You have already liked this work');
+      } else {
+        alert('Failed to like work');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -66,6 +95,28 @@ const WorkDetailPage: React.FC = () => {
             <div className="work-stats">
               <span>{work.likes} likes</span>
               <span>{Array.isArray(work.pages) ? work.pages.length : 0} pages</span>
+              {(work as any).userProgress && (
+                <span>
+                  Progress: {(work as any).userProgress.pagesRead}/{(work as any).userProgress.totalPages} pages
+                </span>
+              )}
+            </div>
+            <div className="work-actions">
+              <button 
+                onClick={handleLike}
+                className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
+                disabled={(work as any).hasLiked || !isAuthenticated}
+              >
+                {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
+              </button>
+              {Array.isArray(work.pages) && work.pages.length > 0 && (
+                <Link 
+                  to={`/read/${typeof work.pages[0] === 'string' ? work.pages[0] : work.pages[0]._id}`} 
+                  className="read-btn read-first"
+                >
+                  Start Reading
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -74,30 +125,37 @@ const WorkDetailPage: React.FC = () => {
       <div className="pages-section">
         <h2>Pages</h2>
         {Array.isArray(work.pages) && work.pages.length > 0 ? (
-          <div className="pages-list">
+          <div className="pages-grid">
             {work.pages.map((page, index) => (
-              <div key={typeof page === 'string' ? page : page._id} className="page-item">
-                <div className="page-info">
-                  <h3>
-                    Page {index + 1}: {typeof page === 'string' ? 'Loading...' : page.title}
-                  </h3>
+              <div key={typeof page === 'string' ? page : page._id} className="page-card">
+                <div className="page-header">
+                  <span className="page-number">Page {index + 1}</span>
                   {typeof page !== 'string' && (
-                    <p className="page-date">
-                      Added: {new Date(page.createdAt).toLocaleDateString()}
-                    </p>
+                    <span className="page-date">
+                      {new Date(page.createdAt).toLocaleDateString()}
+                    </span>
                   )}
                 </div>
-                <Link 
-                  to={`/read/${typeof page === 'string' ? page : page._id}`}
-                  className="read-page-btn"
-                >
-                  Read Page
-                </Link>
+                <div className="page-content">
+                  <h3 className="page-title">
+                    {typeof page === 'string' ? 'Loading...' : page.title}
+                  </h3>
+                </div>
+                <div className="page-actions">
+                  <Link 
+                    to={`/read/${typeof page === 'string' ? page : page._id}`}
+                    className="read-page-btn"
+                  >
+                    Read Page
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="no-pages">No pages available yet.</p>
+          <div className="no-pages">
+            <p>No pages available yet.</p>
+          </div>
         )}
       </div>
     </div>
