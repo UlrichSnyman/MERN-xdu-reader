@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI } from '../services/api';
 import { Work, Suggestion } from '../types';
@@ -7,10 +8,11 @@ import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [works, setWorks] = useState<Work[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'works' | 'suggestions' | 'create' | 'upload'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'works' | 'suggestions' | 'create' | 'upload' | 'progress'>('overview');
   
   // Form states for creating content
   const [workForm, setWorkForm] = useState({
@@ -34,8 +36,17 @@ const AdminDashboard: React.FC = () => {
     category: 'general'
   });
 
+  const [editingWork, setEditingWork] = useState<Work | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    synopsis: '',
+    coverImage: '',
+    category: 'library' as 'library' | 'lore'
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [progressStats, setProgressStats] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +66,21 @@ const AdminDashboard: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const fetchProgressStats = async () => {
+    try {
+      const response = await worksAPI.getProgressStats();
+      setProgressStats(response.data);
+    } catch (error) {
+      console.error('Error fetching progress stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'progress') {
+      fetchProgressStats();
+    }
+  }, [activeTab]);
 
   const handleDeleteWork = async (workId: string) => {
     if (window.confirm('Are you sure you want to delete this work? This action cannot be undone.')) {
@@ -76,6 +102,43 @@ const AdminDashboard: React.FC = () => {
       console.error('Error deleting suggestion:', error);
       alert('Failed to delete suggestion');
     }
+  };
+
+  const handleEditWork = (work: Work) => {
+    setEditingWork(work);
+    setEditForm({
+      title: work.title,
+      synopsis: work.synopsis || '',
+      coverImage: work.coverImage || '',
+      category: work.category
+    });
+  };
+
+  const handleUpdateWork = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWork || !editForm.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await worksAPI.update(editingWork._id, editForm);
+      setWorks(works.map(w => w._id === editingWork._id ? response.data : w));
+      setEditingWork(null);
+      setEditForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
+      alert('Work updated successfully!');
+    } catch (error) {
+      console.error('Error updating work:', error);
+      alert('Failed to update work');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingWork(null);
+    setEditForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
   };
 
   const handleCreateWork = async (e: React.FormEvent) => {
@@ -152,8 +215,11 @@ const AdminDashboard: React.FC = () => {
         const worksResponse = await worksAPI.getAll();
         setWorks(worksResponse.data);
       } else {
-        // For lore uploads, we could redirect to lore library or just show success
+        // For lore uploads, navigate to lore library
         console.log('Lore entry created successfully:', resultData);
+        setTimeout(() => {
+          navigate('/lore');
+        }, 1500); // Give user time to see success message
       }
     } catch (error) {
       console.error('Error uploading PDF:', error);
@@ -209,6 +275,12 @@ const AdminDashboard: React.FC = () => {
           onClick={() => setActiveTab('upload')}
         >
           Upload PDF
+        </button>
+        <button
+          className={activeTab === 'progress' ? 'active' : ''}
+          onClick={() => setActiveTab('progress')}
+        >
+          Reading Progress
         </button>
       </nav>
 
@@ -266,6 +338,12 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="work-actions">
                   <button 
+                    onClick={() => handleEditWork(work)}
+                    className="edit-btn"
+                  >
+                    Edit
+                  </button>
+                  <button 
                     onClick={() => handleDeleteWork(work._id)}
                     className="delete-btn"
                   >
@@ -277,6 +355,76 @@ const AdminDashboard: React.FC = () => {
             {works.length === 0 && (
               <p className="empty-state">No works created yet.</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Work Modal */}
+      {editingWork && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Edit Work</h3>
+              <button onClick={handleCancelEdit} className="close-btn">&times;</button>
+            </div>
+            <form onSubmit={handleUpdateWork} className="edit-form">
+              <div className="form-group">
+                <label htmlFor="edit-title">Title *</label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                  disabled={submitting}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="edit-synopsis">Synopsis</label>
+                <textarea
+                  id="edit-synopsis"
+                  value={editForm.synopsis}
+                  onChange={(e) => setEditForm({...editForm, synopsis: e.target.value})}
+                  disabled={submitting}
+                  rows={4}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="edit-cover">Cover Image URL</label>
+                <input
+                  id="edit-cover"
+                  type="url"
+                  value={editForm.coverImage}
+                  onChange={(e) => setEditForm({...editForm, coverImage: e.target.value})}
+                  disabled={submitting}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="edit-category">Category</label>
+                <select
+                  id="edit-category"
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({...editForm, category: e.target.value as 'library' | 'lore'})}
+                  disabled={submitting}
+                >
+                  <option value="library">Library</option>
+                  <option value="lore">Lore</option>
+                </select>
+              </div>
+              
+              <div className="modal-actions">
+                <button type="button" onClick={handleCancelEdit} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting || !editForm.title.trim()}>
+                  {submitting ? 'Updating...' : 'Update Work'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -536,6 +684,61 @@ const AdminDashboard: React.FC = () => {
               {submitting ? 'Processing...' : 'Upload and Process PDF'}
             </button>
           </form>
+        </div>
+      )}
+
+      {activeTab === 'progress' && (
+        <div className="dashboard-progress">
+          <div className="section-header">
+            <h3>Reading Progress</h3>
+            <p>View how far readers have progressed through your works</p>
+          </div>
+          
+          <div className="progress-list">
+            {progressStats.map(work => (
+              <div key={work.workId} className="progress-work">
+                <div className="work-header">
+                  <h4>{work.title}</h4>
+                  <span className="total-pages">{work.totalPages} pages</span>
+                </div>
+                
+                {work.readers.length > 0 ? (
+                  <div className="readers-list">
+                    {work.readers.map((reader: any, index: number) => (
+                      <div key={index} className="reader-progress">
+                        <div className="reader-info">
+                          <span className="reader-name">{reader.username}</span>
+                          <span className="last-read">
+                            Last read: {new Date(reader.lastReadAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="progress-bar">
+                          <div 
+                            className="progress-fill" 
+                            style={{ width: `${reader.progressPercentage}%` }}
+                          ></div>
+                        </div>
+                        <div className="progress-stats">
+                          <span>{reader.pagesRead}/{work.totalPages} pages ({reader.progressPercentage}%)</span>
+                          <span>Current page: {reader.currentPage}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-readers">
+                    <p>No readers have started this work yet.</p>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {progressStats.length === 0 && (
+              <div className="no-progress">
+                <p>No reading progress data available yet.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -22,6 +22,28 @@ const workSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  likedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  readingProgress: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    currentPage: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Page'
+    },
+    pagesRead: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Page'
+    }],
+    lastReadAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   category: {
     type: String,
     enum: ['library', 'lore'],

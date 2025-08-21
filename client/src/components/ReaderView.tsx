@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { pagesAPI } from '../services/api';
+import { pagesAPI, worksAPI } from '../services/api';
 import { Page, ReaderSettings } from '../types';
+import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
 import './ReaderView.css';
 
@@ -19,6 +20,7 @@ const ReaderView: React.FC = () => {
     speechRate: 1.0,
     selectedVoice: '',
   });
+  const { isAuthenticated } = useAuth();
   
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
@@ -41,6 +43,22 @@ const ReaderView: React.FC = () => {
 
     fetchPage();
   }, [pageId]);
+
+  // Track reading progress when page loads
+  useEffect(() => {
+    const trackProgress = async () => {
+      if (page && isAuthenticated && page.work) {
+        try {
+          const workId = typeof page.work === 'string' ? page.work : page.work._id;
+          await worksAPI.updateProgress(workId, pageId!);
+        } catch (err) {
+          console.error('Failed to track reading progress:', err);
+        }
+      }
+    };
+
+    trackProgress();
+  }, [page, pageId, isAuthenticated]);
 
   useEffect(() => {
     // Load available voices

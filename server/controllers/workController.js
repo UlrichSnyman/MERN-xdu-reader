@@ -50,7 +50,24 @@ const getWorkById = async (req, res) => {
       return res.status(404).json({ error: 'Work not found' });
     }
     
-    res.json(work);
+    // Add user-specific data if authenticated
+    let workData = work.toObject();
+    if (req.user) {
+      workData.hasLiked = work.likedBy.includes(req.user.id);
+      
+      // Find user's reading progress
+      const progress = work.readingProgress.find(p => p.user.toString() === req.user.id);
+      if (progress) {
+        workData.userProgress = {
+          currentPage: progress.currentPage,
+          pagesRead: progress.pagesRead.length,
+          totalPages: work.pages.length,
+          lastReadAt: progress.lastReadAt
+        };
+      }
+    }
+    
+    res.json(workData);
   } catch (error) {
     console.error('Error fetching work:', error);
     res.status(500).json({ error: 'Server error while fetching work' });
@@ -128,20 +145,107 @@ const deleteWork = async (req, res) => {
 // Like a work (public)
 const likeWork = async (req, res) => {
   try {
-    const work = await Work.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { likes: 1 } },
-      { new: true }
-    );
+    const userId = req.user ? req.user.id : null;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required to like works' });
+    }
+    
+    const work = await Work.findById(req.params.id);
     
     if (!work) {
       return res.status(404).json({ error: 'Work not found' });
     }
     
-    res.json({ likes: work.likes });
+    // Check if user has already liked this work
+    const hasLiked = work.likedBy.includes(userId);
+    
+    if (hasLiked) {
+      return res.status(400).json({ error: 'You have already liked this work' });
+    }
+    
+    // Add user to likedBy array and increment likes
+    work.likedBy.push(userId);
+    work.likes += 1;
+    await work.save();
+    
+    res.json({ likes: work.likes, hasLiked: true });
   } catch (error) {
     console.error('Error liking work:', error);
     res.status(500).json({ error: 'Server error while liking work' });
+  }
+};
+
+// Update reading progress (user)
+const updateReadingProgress = async (req, res) => {
+  try {
+    const { workId, pageId } = req.body;
+    const userId = req.user.id;
+    
+    const work = await Work.findById(workId);
+    if (!work) {
+      return res.status(404).json({ error: 'Work not found' });
+    }
+    
+    // Find or create user's reading progress
+    let progress = work.readingProgress.find(p => p.user.toString() === userId);
+    
+    if (!progress) {
+      progress = {
+        user: userId,
+        currentPage: pageId,
+        pagesRead: [pageId],
+        lastReadAt: new Date()
+      };
+      work.readingProgress.push(progress);
+    } else {
+      progress.currentPage = pageId;
+      progress.lastReadAt = new Date();
+      
+      // Add page to pagesRead if not already there
+      if (!progress.pagesRead.includes(pageId)) {
+        progress.pagesRead.push(pageId);
+      }
+    }
+    
+    await work.save();
+    
+    res.json({
+      currentPage: progress.currentPage,
+      pagesRead: progress.pagesRead.length,
+      totalPages: work.pages.length
+    });
+  } catch (error) {
+    console.error('Error updating reading progress:', error);
+    res.status(500).json({ error: 'Server error while updating reading progress' });
+  }
+};
+
+// Get reading progress stats for admin dashboard
+const getReadingProgressStats = async (req, res) => {
+  try {
+    const works = await Work.find()
+      .populate('readingProgress.user', 'username')
+      .populate('readingProgress.currentPage', 'pageNumber title')
+      .select('title readingProgress pages');
+    
+    const stats = works.map(work => ({
+      workId: work._id,
+      title: work.title,
+      totalPages: work.pages.length,
+      readers: work.readingProgress.map(progress => ({
+        username: progress.user.username,
+        currentPage: progress.currentPage ? progress.currentPage.pageNumber : 0,
+        pagesRead: progress.pagesRead.length,
+        lastReadAt: progress.lastReadAt,
+        progressPercentage: Math.round((progress.pagesRead.length / work.pages.length) * 100)
+      }))
+    }));
+    
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching reading progress stats:', error);
+    res.status(500).json({ error: 'Server error while fetching reading progress stats' });
   }
 };
 
@@ -151,5 +255,7 @@ module.exports = {
   createWork,
   updateWork,
   deleteWork,
-  likeWork
+  likeWork,
+  updateReadingProgress,
+  getReadingProgressStats
 };

@@ -26,7 +26,13 @@ const getLoreById = async (req, res) => {
       return res.status(404).json({ error: 'Lore entry not found' });
     }
     
-    res.json(lore);
+    // Add user-specific data if authenticated
+    let loreData = lore.toObject();
+    if (req.user) {
+      loreData.hasLiked = lore.likedBy.includes(req.user.id);
+    }
+    
+    res.json(loreData);
   } catch (error) {
     console.error('Error fetching lore:', error);
     res.status(500).json({ error: 'Server error while fetching lore' });
@@ -97,17 +103,31 @@ const deleteLore = async (req, res) => {
 // Like a lore entry (public)
 const likeLore = async (req, res) => {
   try {
-    const lore = await Lore.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { likes: 1 } },
-      { new: true }
-    );
+    const userId = req.user ? req.user.id : null;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required to like lore' });
+    }
+    
+    const lore = await Lore.findById(req.params.id);
     
     if (!lore) {
       return res.status(404).json({ error: 'Lore entry not found' });
     }
     
-    res.json({ likes: lore.likes });
+    // Check if user has already liked this lore
+    const hasLiked = lore.likedBy.includes(userId);
+    
+    if (hasLiked) {
+      return res.status(400).json({ error: 'You have already liked this lore entry' });
+    }
+    
+    // Add user to likedBy array and increment likes
+    lore.likedBy.push(userId);
+    lore.likes += 1;
+    await lore.save();
+    
+    res.json({ likes: lore.likes, hasLiked: true });
   } catch (error) {
     console.error('Error liking lore:', error);
     res.status(500).json({ error: 'Server error while liking lore' });

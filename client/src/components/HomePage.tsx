@@ -33,17 +33,23 @@ const HomePage: React.FC = () => {
     }
     
     try {
-      await worksAPI.like(workId);
-      // Update the likes count locally
+      const response = await worksAPI.like(workId);
+      // Update the likes count and hasLiked status locally
       setWorks(prevWorks =>
         prevWorks.map(work =>
-          work._id === workId ? { ...work, likes: work.likes + 1 } : work
+          work._id === workId ? { 
+            ...work, 
+            likes: response.data.likes,
+            hasLiked: response.data.hasLiked 
+          } : work
         )
       );
     } catch (err: any) {
       console.error('Failed to like work:', err);
       if (err.response?.status === 401) {
         alert('Please login to like works');
+      } else if (err.response?.status === 400) {
+        alert(err.response.data.error || 'You have already liked this work');
       } else {
         alert('Failed to like work');
       }
@@ -112,9 +118,10 @@ const HomePage: React.FC = () => {
                     )}
                     <button 
                       onClick={() => handleLike(work._id)}
-                      className="like-btn"
+                      className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
+                      disabled={(work as any).hasLiked || !isAuthenticated}
                     >
-                      Like ({work.likes})
+                      {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
                     </button>
                   </div>
                   <div className="work-meta">
