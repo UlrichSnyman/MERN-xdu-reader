@@ -8,10 +8,11 @@ const connectDB = require('./config/database');
 // Import routes
 const authRoutes = require('./routes/auth');
 const workRoutes = require('./routes/works');
-const chapterRoutes = require('./routes/chapters');
+const pageRoutes = require('./routes/pages');
 const loreRoutes = require('./routes/lore');
 const commentRoutes = require('./routes/comments');
 const suggestionRoutes = require('./routes/suggestions');
+const uploadRoutes = require('./routes/upload');
 
 // Initialize Express app
 const app = express();
@@ -66,10 +67,11 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/works', workRoutes);
-app.use('/api/chapters', chapterRoutes);
+app.use('/api/pages', pageRoutes);
 app.use('/api/lore', loreRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/suggestions', suggestionRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

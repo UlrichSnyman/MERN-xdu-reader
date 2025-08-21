@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { chaptersAPI } from '../services/api';
-import { Chapter, ReaderSettings } from '../types';
+import { pagesAPI } from '../services/api';
+import { Page, ReaderSettings } from '../types';
 import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
 import './ReaderView.css';
 
 const ReaderView: React.FC = () => {
-  const { chapterId } = useParams<{ chapterId: string }>();
+  const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -25,21 +25,21 @@ const ReaderView: React.FC = () => {
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    const fetchChapter = async () => {
-      if (!chapterId) return;
+    const fetchPage = async () => {
+      if (!pageId) return;
       
       try {
-        const response = await chaptersAPI.getById(chapterId);
-        setChapter(response.data);
+        const response = await pagesAPI.getById(pageId);
+        setPage(response.data);
       } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load chapter');
+        setError(err.response?.data?.error || 'Failed to load page');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchChapter();
-  }, [chapterId]);
+    fetchPage();
+  }, [pageId]);
 
   // Load settings from localStorage
   useEffect(() => {
@@ -59,34 +59,34 @@ const ReaderView: React.FC = () => {
   }, [settings]);
 
   const handleLike = async () => {
-    if (!chapter) return;
+    if (!page) return;
     
     if (!isAuthenticated) {
-      alert('Please login to like chapters');
+      alert('Please login to like pages');
       return;
     }
     
     try {
-      await chaptersAPI.like(chapter._id);
-      setChapter({ ...chapter, likes: chapter.likes + 1 });
+      await pagesAPI.like(page._id);
+      setPage({ ...page, likes: page.likes + 1 });
     } catch (error: any) {
-      console.error('Failed to like chapter:', error);
+      console.error('Failed to like page:', error);
       if (error.response?.status === 401) {
-        alert('Please login to like chapters');
+        alert('Please login to like pages');
       } else {
-        alert('Failed to like chapter');
+        alert('Failed to like page');
       }
     }
   };
 
   const startTextToSpeech = () => {
-    if (!chapter || !contentRef.current) return;
+    if (!page || !contentRef.current) return;
 
     if ('speechSynthesis' in window) {
       // Stop current speech if any
       window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(chapter.content);
+      const utterance = new SpeechSynthesisUtterance(page.content);
       utterance.rate = settings.speechRate;
       utterance.pitch = 1;
       utterance.volume = 1;
@@ -117,12 +117,12 @@ const ReaderView: React.FC = () => {
     }
   };
 
-  const navigateChapter = (direction: 'previous' | 'next') => {
-    if (!chapter?.navigation) return;
+  const navigatePage = (direction: 'previous' | 'next') => {
+    if (!page?.navigation) return;
     
-    const targetChapter = chapter.navigation[direction];
-    if (targetChapter) {
-      navigate(`/read/${targetChapter._id}`);
+    const targetPage = page.navigation[direction];
+    if (targetPage) {
+      navigate(`/read/${targetPage._id}`);
     }
   };
 
@@ -130,16 +130,16 @@ const ReaderView: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading chapter...</p>
+        <p>Loading page...</p>
       </div>
     );
   }
 
-  if (error || !chapter) {
+  if (error || !page) {
     return (
       <div className="error-container">
         <h2>Error</h2>
-        <p>{error || 'Chapter not found'}</p>
+        <p>{error || 'Page not found'}</p>
         <Link to="/" className="back-link">← Back to Library</Link>
       </div>
     );
@@ -227,7 +227,7 @@ const ReaderView: React.FC = () => {
       {/* Main Content */}
       <div className="reader-header">
         <div className="reader-nav">
-          <Link to={`/work/${typeof chapter.work === 'string' ? chapter.work : chapter.work._id}`} className="back-link">
+          <Link to={`/work/${typeof page.work === 'string' ? page.work : page.work._id}`} className="back-link">
             ← Back to Work
           </Link>
           <button 
@@ -238,46 +238,46 @@ const ReaderView: React.FC = () => {
           </button>
         </div>
         
-        <div className="chapter-info">
-          <h1>{chapter.title}</h1>
-          <div className="chapter-meta">
-            <span>Chapter {chapter.chapterNumber}</span>
+        <div className="page-info">
+          <h1>{page.title}</h1>
+          <div className="page-meta">
+            <span>Page {page.pageNumber}</span>
             <button onClick={handleLike} className="like-btn">
-              ❤️ {chapter.likes}
+              ❤️ {page.likes}
             </button>
           </div>
         </div>
       </div>
 
       <div className="reader-content" ref={contentRef} style={contentStyle}>
-        {chapter.content.split('\n').map((paragraph, index) => (
+        {page.content.split('\n').map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
       </div>
 
-      {/* Chapter Navigation */}
-      <div className="chapter-navigation">
+      {/* Page Navigation */}
+      <div className="page-navigation">
         <button
-          onClick={() => navigateChapter('previous')}
-          disabled={!chapter.navigation?.previous}
+          onClick={() => navigatePage('previous')}
+          disabled={!page.navigation?.previous}
           className="nav-btn prev-btn"
         >
-          ← Previous Chapter
+          ← Previous Page
         </button>
         
         <button
-          onClick={() => navigateChapter('next')}
-          disabled={!chapter.navigation?.next}
+          onClick={() => navigatePage('next')}
+          disabled={!page.navigation?.next}
           className="nav-btn next-btn"
         >
-          Next Chapter →
+          Next Page →
         </button>
       </div>
 
       {/* Comments Section */}
       <CommentSection 
-        contentId={chapter._id}
-        contentType="Chapter"
+        contentId={page._id}
+        contentType="Page"
       />
     </div>
   );

@@ -9,25 +9,25 @@ export interface Work {
   title: string;
   synopsis?: string;
   coverImage?: string;
-  category: 'book' | 'short-story';
+  category: 'library' | 'lore';
   likes: number;
-  chapters: Chapter[] | string[];
+  pages: Page[] | string[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Chapter {
+export interface Page {
   _id: string;
   title: string;
   content: string;
   work: Work | string;
-  chapterNumber: number;
+  pageNumber: number;
   likes: number;
   createdAt: string;
   updatedAt: string;
   navigation?: {
-    previous?: Chapter;
-    next?: Chapter;
+    previous?: Page;
+    next?: Page;
   };
 }
 
@@ -46,7 +46,7 @@ export interface Comment {
   authorName: string;
   content: string;
   parentContent: string;
-  parentType: 'Chapter' | 'Lore';
+  parentType: 'Page' | 'Lore';
   createdAt: string;
   updatedAt: string;
 }
@@ -81,5 +81,5 @@ export interface CommentFormData {
   authorName: string;
   content: string;
   parentContent: string;
-  parentType: 'Chapter' | 'Lore';
+  parentType: 'Page' | 'Lore';
 }

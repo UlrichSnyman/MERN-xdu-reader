@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { worksAPI, suggestionsAPI } from '../services/api';
+import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI } from '../services/api';
 import { Work, Suggestion } from '../types';
+import RichTextEditor from './RichTextEditor';
 import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
@@ -9,7 +10,32 @@ const AdminDashboard: React.FC = () => {
   const [works, setWorks] = useState<Work[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'works' | 'suggestions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'works' | 'suggestions' | 'create' | 'upload'>('overview');
+  
+  // Form states for creating content
+  const [workForm, setWorkForm] = useState({
+    title: '',
+    synopsis: '',
+    coverImage: '',
+    category: 'library' as 'library' | 'lore'
+  });
+  
+  const [pageForm, setPageForm] = useState({
+    title: '',
+    content: '',
+    workId: '',
+    pageNumber: 1
+  });
+
+  const [uploadForm, setUploadForm] = useState({
+    title: '',
+    synopsis: '',
+    destination: 'library' as 'library' | 'lore',
+    category: 'general'
+  });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,6 +78,83 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleCreateWork = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!workForm.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await worksAPI.create(workForm);
+      setWorks([response.data, ...works]);
+      setWorkForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
+      alert('Work created successfully!');
+    } catch (error) {
+      console.error('Error creating work:', error);
+      alert('Failed to create work');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreatePage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pageForm.title.trim() || !pageForm.content.trim() || !pageForm.workId) {
+      alert('Title, content, and work selection are required');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await pagesAPI.create(pageForm);
+      setPageForm({ title: '', content: '', workId: '', pageNumber: 1 });
+      alert('Page created successfully!');
+      // Refresh works to update page count
+      const worksResponse = await worksAPI.getAll();
+      setWorks(worksResponse.data);
+    } catch (error) {
+      console.error('Error creating page:', error);
+      alert('Failed to create page');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile || !uploadForm.title.trim()) {
+      alert('Please select a PDF file and provide a title');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('pdf', selectedFile);
+      formData.append('title', uploadForm.title);
+      formData.append('destination', uploadForm.destination);
+      if (uploadForm.synopsis) formData.append('synopsis', uploadForm.synopsis);
+      if (uploadForm.category) formData.append('category', uploadForm.category);
+
+      const response = await uploadAPI.uploadPDF(formData);
+      alert(`PDF processed successfully! Created ${response.data.result.type}: ${response.data.result.data.title}`);
+      
+      setUploadForm({ title: '', synopsis: '', destination: 'library', category: 'general' });
+      setSelectedFile(null);
+      
+      // Refresh works
+      const worksResponse = await worksAPI.getAll();
+      setWorks(worksResponse.data);
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      alert('Failed to upload PDF');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -86,6 +189,18 @@ const AdminDashboard: React.FC = () => {
           onClick={() => setActiveTab('suggestions')}
         >
           Suggestions ({suggestions.length})
+        </button>
+        <button
+          className={activeTab === 'create' ? 'active' : ''}
+          onClick={() => setActiveTab('create')}
+        >
+          Create Content
+        </button>
+        <button
+          className={activeTab === 'upload' ? 'active' : ''}
+          onClick={() => setActiveTab('upload')}
+        >
+          Upload PDF
         </button>
       </nav>
 
@@ -191,6 +306,228 @@ const AdminDashboard: React.FC = () => {
               <p className="empty-state">No suggestions yet.</p>
             )}
           </div>
+        </div>
+      )}
+
+      {activeTab === 'create' && (
+        <div className="dashboard-create">
+          <div className="section-header">
+            <h3>Create New Content</h3>
+            <p>Manually create works and pages with rich text editing</p>
+          </div>
+
+          <div className="create-forms">
+            <div className="form-section">
+              <h4>Create New Work</h4>
+              <form onSubmit={handleCreateWork} className="create-form">
+                <div className="form-group">
+                  <label htmlFor="work-title">Title *</label>
+                  <input
+                    id="work-title"
+                    type="text"
+                    value={workForm.title}
+                    onChange={(e) => setWorkForm({...workForm, title: e.target.value})}
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="work-synopsis">Synopsis</label>
+                  <textarea
+                    id="work-synopsis"
+                    value={workForm.synopsis}
+                    onChange={(e) => setWorkForm({...workForm, synopsis: e.target.value})}
+                    rows={3}
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="work-cover">Cover Image URL</label>
+                  <input
+                    id="work-cover"
+                    type="url"
+                    value={workForm.coverImage}
+                    onChange={(e) => setWorkForm({...workForm, coverImage: e.target.value})}
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="work-category">Category</label>
+                  <select
+                    id="work-category"
+                    value={workForm.category}
+                    onChange={(e) => setWorkForm({...workForm, category: e.target.value as 'library' | 'lore'})}
+                    disabled={submitting}
+                  >
+                    <option value="library">Library</option>
+                    <option value="lore">Lore</option>
+                  </select>
+                </div>
+                
+                <button type="submit" disabled={submitting || !workForm.title.trim()}>
+                  {submitting ? 'Creating...' : 'Create Work'}
+                </button>
+              </form>
+            </div>
+
+            <div className="form-section">
+              <h4>Create New Page</h4>
+              <form onSubmit={handleCreatePage} className="create-form">
+                <div className="form-group">
+                  <label htmlFor="page-work">Select Work *</label>
+                  <select
+                    id="page-work"
+                    value={pageForm.workId}
+                    onChange={(e) => setPageForm({...pageForm, workId: e.target.value})}
+                    required
+                    disabled={submitting}
+                  >
+                    <option value="">Choose a work...</option>
+                    {works.map(work => (
+                      <option key={work._id} value={work._id}>
+                        {work.title} ({work.category})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="page-title">Page Title *</label>
+                  <input
+                    id="page-title"
+                    type="text"
+                    value={pageForm.title}
+                    onChange={(e) => setPageForm({...pageForm, title: e.target.value})}
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="page-number">Page Number</label>
+                  <input
+                    id="page-number"
+                    type="number"
+                    min="1"
+                    value={pageForm.pageNumber}
+                    onChange={(e) => setPageForm({...pageForm, pageNumber: parseInt(e.target.value)})}
+                    disabled={submitting}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="page-content">Content *</label>
+                  <RichTextEditor
+                    value={pageForm.content}
+                    onChange={(content) => setPageForm({...pageForm, content})}
+                    placeholder="Write your page content here..."
+                    rows={12}
+                  />
+                </div>
+                
+                <button type="submit" disabled={submitting || !pageForm.title.trim() || !pageForm.content.trim() || !pageForm.workId}>
+                  {submitting ? 'Creating...' : 'Create Page'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'upload' && (
+        <div className="dashboard-upload">
+          <div className="section-header">
+            <h3>Upload PDF</h3>
+            <p>Upload and process PDF files to automatically create works or lore entries</p>
+          </div>
+
+          <form onSubmit={handleFileUpload} className="upload-form">
+            <div className="form-group">
+              <label htmlFor="pdf-file">Select PDF File *</label>
+              <input
+                id="pdf-file"
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                required
+                disabled={submitting}
+              />
+              {selectedFile && (
+                <p className="file-info">
+                  Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="upload-title">Title *</label>
+              <input
+                id="upload-title"
+                type="text"
+                value={uploadForm.title}
+                onChange={(e) => setUploadForm({...uploadForm, title: e.target.value})}
+                required
+                disabled={submitting}
+                placeholder="Enter a title for the content"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="upload-synopsis">Synopsis/Description</label>
+              <textarea
+                id="upload-synopsis"
+                value={uploadForm.synopsis}
+                onChange={(e) => setUploadForm({...uploadForm, synopsis: e.target.value})}
+                rows={3}
+                disabled={submitting}
+                placeholder="Optional description of the content"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="upload-destination">Destination *</label>
+              <select
+                id="upload-destination"
+                value={uploadForm.destination}
+                onChange={(e) => setUploadForm({...uploadForm, destination: e.target.value as 'library' | 'lore'})}
+                disabled={submitting}
+              >
+                <option value="library">Library (Create work with pages)</option>
+                <option value="lore">Lore (Create single lore entry)</option>
+              </select>
+            </div>
+
+            {uploadForm.destination === 'lore' && (
+              <div className="form-group">
+                <label htmlFor="upload-category">Lore Category</label>
+                <input
+                  id="upload-category"
+                  type="text"
+                  value={uploadForm.category}
+                  onChange={(e) => setUploadForm({...uploadForm, category: e.target.value})}
+                  disabled={submitting}
+                  placeholder="e.g., worldbuilding, history, characters"
+                />
+              </div>
+            )}
+
+            <div className="upload-info">
+              <h5>Processing Info:</h5>
+              <ul>
+                <li><strong>Library:</strong> PDF will be split into pages (~2000 characters each)</li>
+                <li><strong>Lore:</strong> Entire PDF content will become a single lore entry</li>
+                <li><strong>File Size Limit:</strong> 10MB maximum</li>
+                <li><strong>Format:</strong> Text will be extracted automatically</li>
+              </ul>
+            </div>
+
+            <button type="submit" disabled={submitting || !selectedFile || !uploadForm.title.trim()}>
+              {submitting ? 'Processing...' : 'Upload and Process PDF'}
+            </button>
+          </form>
         </div>
       )}
     </div>

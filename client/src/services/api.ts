@@ -41,12 +41,12 @@ export const worksAPI = {
   like: (id: string) => api.post(`/works/${id}/like`),
 };
 
-export const chaptersAPI = {
-  getById: (id: string) => api.get(`/chapters/${id}`),
-  create: (chapterData: any) => api.post('/chapters', chapterData),
-  update: (id: string, chapterData: any) => api.put(`/chapters/${id}`, chapterData),
-  delete: (id: string) => api.delete(`/chapters/${id}`),
-  like: (id: string) => api.post(`/chapters/${id}/like`),
+export const pagesAPI = {
+  getById: (id: string) => api.get(`/pages/${id}`),
+  create: (pageData: any) => api.post('/pages', pageData),
+  update: (id: string, pageData: any) => api.put(`/pages/${id}`, pageData),
+  delete: (id: string) => api.delete(`/pages/${id}`),
+  like: (id: string) => api.post(`/pages/${id}/like`),
 };
 
 export const loreAPI = {
@@ -68,6 +68,14 @@ export const suggestionsAPI = {
   getAll: () => api.get('/suggestions'),
   create: (suggestionData: any) => api.post('/suggestions', suggestionData),
   delete: (id: string) => api.delete(`/suggestions/${id}`),
+};
+
+export const uploadAPI = {
+  uploadPDF: (formData: FormData) => api.post('/upload/pdf', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
 };
 
 export default api;

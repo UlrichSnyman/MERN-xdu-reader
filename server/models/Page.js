@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const chapterSchema = new mongoose.Schema({
+const pageSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -15,7 +15,7 @@ const chapterSchema = new mongoose.Schema({
     ref: 'Work',
     required: true
   },
-  chapterNumber: {
+  pageNumber: {
     type: Number,
     required: true
   },
@@ -27,7 +27,7 @@ const chapterSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure chapters are ordered properly within a work
-chapterSchema.index({ work: 1, chapterNumber: 1 }, { unique: true });
+// Ensure pages are ordered properly within a work
+pageSchema.index({ work: 1, pageNumber: 1 }, { unique: true });
 
-module.exports = mongoose.model('Chapter', chapterSchema);
+module.exports = mongoose.model('Page', pageSchema);

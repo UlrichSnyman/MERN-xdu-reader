@@ -25,7 +25,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/work/:id" element={<WorkDetailPage />} />
-                <Route path="/read/:chapterId" element={<ReaderView />} />
+                <Route path="/read/:pageId" element={<ReaderView />} />
                 <Route path="/lore" element={<LoreLibrary />} />
                 <Route path="/lore/:id" element={<LoreDetailPage />} />
                 <Route path="/suggestions" element={<SuggestionsPage />} />
