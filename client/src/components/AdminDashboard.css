@@ -239,3 +239,146 @@
     gap: 0.5rem;
   }
 }
+
+/* Create Content Tab Styles */
+.dashboard-create,
+.dashboard-upload {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.create-forms {
+  display: grid;
+  gap: 2rem;
+}
+
+.form-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.form-section h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.create-form,
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #34495e;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+.form-group input:disabled,
+.form-group textarea:disabled,
+.form-group select:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.create-form button,
+.upload-form button {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.create-form button:hover,
+.upload-form button:hover {
+  background: #2980b9;
+}
+
+.create-form button:disabled,
+.upload-form button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Upload specific styles */
+.file-info {
+  background: #e8f5e8;
+  color: #2d5b2d;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.upload-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.upload-info h5 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.upload-info ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.upload-info li {
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  color: #5a6c7d;
+}
+
+/* Responsive design for new forms */
+@media (max-width: 768px) {
+  .dashboard-create,
+  .dashboard-upload {
+    padding: 0 1rem;
+  }
+  
+  .form-section {
+    padding: 1rem;
+  }
+  
+  .create-forms {
+    gap: 1.5rem;
+  }
+}
