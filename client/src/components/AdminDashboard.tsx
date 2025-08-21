@@ -36,6 +36,14 @@ const AdminDashboard: React.FC = () => {
     category: 'general'
   });
 
+  const [editingWork, setEditingWork] = useState<Work | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    synopsis: '',
+    coverImage: '',
+    category: 'library' as 'library' | 'lore'
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [progressStats, setProgressStats] = useState<any[]>([]);
@@ -94,6 +102,43 @@ const AdminDashboard: React.FC = () => {
       console.error('Error deleting suggestion:', error);
       alert('Failed to delete suggestion');
     }
+  };
+
+  const handleEditWork = (work: Work) => {
+    setEditingWork(work);
+    setEditForm({
+      title: work.title,
+      synopsis: work.synopsis || '',
+      coverImage: work.coverImage || '',
+      category: work.category
+    });
+  };
+
+  const handleUpdateWork = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWork || !editForm.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await worksAPI.update(editingWork._id, editForm);
+      setWorks(works.map(w => w._id === editingWork._id ? response.data : w));
+      setEditingWork(null);
+      setEditForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
+      alert('Work updated successfully!');
+    } catch (error) {
+      console.error('Error updating work:', error);
+      alert('Failed to update work');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingWork(null);
+    setEditForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
   };
 
   const handleCreateWork = async (e: React.FormEvent) => {
@@ -293,6 +338,12 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="work-actions">
                   <button 
+                    onClick={() => handleEditWork(work)}
+                    className="edit-btn"
+                  >
+                    Edit
+                  </button>
+                  <button 
                     onClick={() => handleDeleteWork(work._id)}
                     className="delete-btn"
                   >
@@ -304,6 +355,76 @@ const AdminDashboard: React.FC = () => {
             {works.length === 0 && (
               <p className="empty-state">No works created yet.</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Work Modal */}
+      {editingWork && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Edit Work</h3>
+              <button onClick={handleCancelEdit} className="close-btn">&times;</button>
+            </div>
+            <form onSubmit={handleUpdateWork} className="edit-form">
+              <div className="form-group">
+                <label htmlFor="edit-title">Title *</label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                  disabled={submitting}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="edit-synopsis">Synopsis</label>
+                <textarea
+                  id="edit-synopsis"
+                  value={editForm.synopsis}
+                  onChange={(e) => setEditForm({...editForm, synopsis: e.target.value})}
+                  disabled={submitting}
+                  rows={4}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="edit-cover">Cover Image URL</label>
+                <input
+                  id="edit-cover"
+                  type="url"
+                  value={editForm.coverImage}
+                  onChange={(e) => setEditForm({...editForm, coverImage: e.target.value})}
+                  disabled={submitting}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="edit-category">Category</label>
+                <select
+                  id="edit-category"
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({...editForm, category: e.target.value as 'library' | 'lore'})}
+                  disabled={submitting}
+                >
+                  <option value="library">Library</option>
+                  <option value="lore">Lore</option>
+                </select>
+              </div>
+              
+              <div className="modal-actions">
+                <button type="button" onClick={handleCancelEdit} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting || !editForm.title.trim()}>
+                  {submitting ? 'Updating...' : 'Update Work'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
