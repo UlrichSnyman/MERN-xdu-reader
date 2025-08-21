@@ -24,35 +24,38 @@ const HomePage: React.FC = () => {
     };
 
     fetchWorks();
-  }, []);
+  }, [isAuthenticated]);
 
-  const handleLike = async (workId: string) => {
+  const handleLikeToggle = async (workId: string) => {
     if (!isAuthenticated) {
-      alert('Please login to like works');
+      alert('Please login to like or unlike works');
       return;
     }
-    
+
+    const work = works.find(w => w._id === workId);
+    if (!work) return;
+
+    const hasLiked = (work as any).hasLiked;
+
     try {
-      const response = await worksAPI.like(workId);
-      // Update the likes count and hasLiked status locally
+      const apiCall = hasLiked ? worksAPI.unlike : worksAPI.like;
+      const response = await apiCall(workId);
+      const updatedWork = response.data;
+
       setWorks(prevWorks =>
-        prevWorks.map(work =>
-          work._id === workId ? { 
-            ...work, 
-            likes: response.data.likes,
-            hasLiked: response.data.hasLiked 
-          } : work
+        prevWorks.map(w =>
+          w._id === workId ? { ...w, ...updatedWork } : w
         )
       );
     } catch (err: any) {
-      console.error('Failed to like work:', err);
-      if (err.response?.status === 401) {
-        alert('Please login to like works');
-      } else if (err.response?.status === 400) {
-        alert(err.response.data.error || 'You have already liked this work');
-      } else {
-        alert('Failed to like work');
+      console.error(`Failed to ${hasLiked ? 'unlike' : 'like'} work:`, err);
+      // If server says already liked from previous state, sync UI so user can unlike next
+      if (!hasLiked && err?.response?.status === 400) {
+        // Manually sync the client state if the server says it's already liked
+        setWorks(prevWorks => prevWorks.map(w => w._id === workId ? { ...w, hasLiked: true } : w));
+        return;
       }
+      alert('An error occurred. Please try again.');
     }
   };
 
@@ -117,13 +120,23 @@ const HomePage: React.FC = () => {
                       </Link>
                     )}
                     <button 
-                      onClick={() => handleLike(work._id)}
+                      onClick={() => handleLikeToggle(work._id)}
                       className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
-                      disabled={(work as any).hasLiked || !isAuthenticated}
+                      disabled={!isAuthenticated}
                     >
                       {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
                     </button>
                   </div>
+                  {( (work as any).likedByUsers && (work as any).likedByUsers.length > 0 ) && (
+                    <div className="liked-by-box">
+                      <span className="liked-by-title">Liked by:</span>
+                      <div className="liked-by-list">
+                        {(work as any).likedByUsers.map((u: any) => (
+                          <span key={u._id} className="liked-by-chip">{u.username}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="work-meta">
                     <small>
                       Published: {new Date(work.createdAt).toLocaleDateString()}

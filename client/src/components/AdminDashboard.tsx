@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI } from '../services/api';
-import { Work, Suggestion } from '../types';
+import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI, loreAPI } from '../services/api';
+import { Work, Suggestion, Page } from '../types';
 import RichTextEditor from './RichTextEditor';
 import './AdminDashboard.css';
 
@@ -22,12 +22,17 @@ const AdminDashboard: React.FC = () => {
     category: 'library' as 'library' | 'lore'
   });
   
-  const [pageForm, setPageForm] = useState({
+  const [loreForm, setLoreForm] = useState({
     title: '',
     content: '',
-    workId: '',
-    pageNumber: 1
+    category: 'general'
   });
+  
+  const [pageContent, setPageContent] = useState('');
+  const [selectedWorkId, setSelectedWorkId] = useState<string>('');
+  const [selectedPage, setSelectedPage] = useState<number>(1);
+  const [workPages, setWorkPages] = useState<Page[]>([]);
+  const [isEditingPage, setIsEditingPage] = useState(false);
 
   const [uploadForm, setUploadForm] = useState({
     title: '',
@@ -162,35 +167,95 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleCreatePage = async (e: React.FormEvent) => {
+
+  const handleCreateLore = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageForm.title.trim() || !pageForm.content.trim() || !pageForm.workId) {
-      alert('Title, content, and work selection are required');
+    if (!loreForm.title.trim() || !loreForm.content.trim()) {
+      alert('Title and content are required for lore entries');
       return;
     }
 
     setSubmitting(true);
     try {
-      await pagesAPI.create(pageForm);
-      setPageForm({ title: '', content: '', workId: '', pageNumber: 1 });
-      alert('Page created successfully!');
-      // Refresh works to update page count
-      const worksResponse = await worksAPI.getAll();
-      setWorks(worksResponse.data);
+      await loreAPI.create(loreForm);
+      setLoreForm({ title: '', content: '', category: 'general' });
+      alert('Lore entry created successfully!');
     } catch (error) {
-      console.error('Error creating page:', error);
-      alert('Failed to create page');
+      console.error('Error creating lore entry:', error);
+      alert('Failed to create lore entry');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleWorkSelect = async (workId: string) => {
+    setSelectedWorkId(workId);
+    if (workId) {
+      try {
+        const response = await pagesAPI.getForWork(workId);
+        setWorkPages(response.data);
+        if (response.data.length > 0) {
+          setSelectedPage(1);
+          setPageContent(response.data[0].content);
+        } else {
+          setSelectedPage(1);
+          setPageContent('');
+        }
+      } catch (error) {
+        console.error('Error fetching pages for work:', error);
+        setWorkPages([]);
+        setPageContent('');
+      }
+    } else {
+      setWorkPages([]);
+      setPageContent('');
+    }
+  };
+
+  const handlePageChange = (pageNumber: number) => {
+    setSelectedPage(pageNumber);
+    const page = workPages.find(p => p.pageNumber === pageNumber);
+    setPageContent(page ? page.content : '');
+    setIsEditingPage(false);
+  };
+
+  const handleSavePage = async () => {
+    if (!selectedWorkId) return;
+
+    const page = workPages.find(p => p.pageNumber === selectedPage);
+    
+    setSubmitting(true);
+    try {
+      if (page) {
+        // Update existing page
+        await pagesAPI.update(page._id, { content: pageContent });
+      } else {
+        // Create new page
+        await pagesAPI.create({
+          workId: selectedWorkId,
+          pageNumber: selectedPage,
+          title: `Page ${selectedPage}`,
+          content: pageContent,
+        });
+      }
+      alert(`Page ${selectedPage} saved successfully!`);
+      handleWorkSelect(selectedWorkId); // Refresh pages
+    } catch (error) {
+      console.error('Error saving page:', error);
+      alert('Failed to save page');
+    } finally {
+      setSubmitting(false);
+      setIsEditingPage(false);
+    }
+  };
+  
   const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || !uploadForm.title.trim()) {
       alert('Please select a PDF file and provide a title');
       return;
     }
+
 
     setSubmitting(true);
     try {
@@ -329,7 +394,6 @@ const AdminDashboard: React.FC = () => {
                   <h4>{work.title}</h4>
                   <p>{work.synopsis}</p>
                   <div className="work-meta">
-                    <span className="category">{work.category}</span>
                     <span className="likes">Likes: {work.likes}</span>
                     <span className="date">
                       {new Date(work.createdAt).toLocaleDateString()}
@@ -468,8 +532,8 @@ const AdminDashboard: React.FC = () => {
       {activeTab === 'create' && (
         <div className="dashboard-create">
           <div className="section-header">
-            <h3>Create New Content</h3>
-            <p>Manually create works and pages with rich text editing</p>
+            <h3>Create & Edit Content</h3>
+            <p>Manually create works, lore, and edit page content.</p>
           </div>
 
           <div className="create-forms">
@@ -530,64 +594,100 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="form-section">
-              <h4>Create New Page</h4>
-              <form onSubmit={handleCreatePage} className="create-form">
+              <h4>Create New Lore Entry</h4>
+              <form onSubmit={handleCreateLore} className="create-form">
                 <div className="form-group">
-                  <label htmlFor="page-work">Select Work *</label>
-                  <select
-                    id="page-work"
-                    value={pageForm.workId}
-                    onChange={(e) => setPageForm({...pageForm, workId: e.target.value})}
-                    required
-                    disabled={submitting}
-                  >
-                    <option value="">Choose a work...</option>
-                    {works.map(work => (
-                      <option key={work._id} value={work._id}>
-                        {work.title} ({work.category})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="page-title">Page Title *</label>
+                  <label htmlFor="lore-title">Title *</label>
                   <input
-                    id="page-title"
+                    id="lore-title"
                     type="text"
-                    value={pageForm.title}
-                    onChange={(e) => setPageForm({...pageForm, title: e.target.value})}
+                    value={loreForm.title}
+                    onChange={(e) => setLoreForm({ ...loreForm, title: e.target.value })}
                     required
                     disabled={submitting}
                   />
                 </div>
-                
                 <div className="form-group">
-                  <label htmlFor="page-number">Page Number</label>
+                  <label htmlFor="lore-category">Category</label>
                   <input
-                    id="page-number"
-                    type="number"
-                    min="1"
-                    value={pageForm.pageNumber}
-                    onChange={(e) => setPageForm({...pageForm, pageNumber: parseInt(e.target.value)})}
+                    id="lore-category"
+                    type="text"
+                    value={loreForm.category}
+                    onChange={(e) => setLoreForm({ ...loreForm, category: e.target.value })}
                     disabled={submitting}
                   />
                 </div>
-                
                 <div className="form-group">
-                  <label htmlFor="page-content">Content *</label>
+                  <label htmlFor="lore-content">Content *</label>
                   <RichTextEditor
-                    value={pageForm.content}
-                    onChange={(content) => setPageForm({...pageForm, content})}
-                    placeholder="Write your page content here..."
-                    rows={12}
+                    value={loreForm.content}
+                    onChange={(content) => setLoreForm({ ...loreForm, content })}
+                    placeholder="Write your lore content here..."
+                    rows={10}
                   />
                 </div>
-                
-                <button type="submit" disabled={submitting || !pageForm.title.trim() || !pageForm.content.trim() || !pageForm.workId}>
-                  {submitting ? 'Creating...' : 'Create Page'}
+                <button type="submit" disabled={submitting || !loreForm.title.trim() || !loreForm.content.trim()}>
+                  {submitting ? 'Creating...' : 'Create Lore Entry'}
                 </button>
               </form>
+            </div>
+
+            <div className="form-section">
+              <h4>Edit Work Content</h4>
+              <div className="form-group">
+                <label htmlFor="page-work">Select Work *</label>
+                <select
+                  id="page-work"
+                  value={selectedWorkId}
+                  onChange={(e) => handleWorkSelect(e.target.value)}
+                  required
+                  disabled={submitting}
+                >
+                  <option value="">Choose a work...</option>
+                  {works.filter(w => w.category === 'library').map(work => (
+                    <option key={work._id} value={work._id}>
+                      {work.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedWorkId && (
+                <div>
+                  <div className="page-navigation">
+                    {/* Simple page navigation */}
+                    <label>Page:</label>
+                    <input 
+                      type="number"
+                      min="1"
+                      value={selectedPage}
+                      onChange={(e) => handlePageChange(parseInt(e.target.value, 10))}
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="page-content">Content</label>
+                    <RichTextEditor
+                      value={pageContent}
+                      onChange={(content) => setPageContent(content)}
+                      placeholder="Write your page content here..."
+                      rows={15}
+                      disabled={submitting || !isEditingPage}
+                    />
+                  </div>
+                  
+                  {!isEditingPage ? (
+                    <button onClick={() => setIsEditingPage(true)} disabled={submitting}>
+                      Edit Page {selectedPage}
+                    </button>
+                  ) : (
+                    <button onClick={handleSavePage} disabled={submitting}>
+                      {submitting ? 'Saving...' : `Save Page ${selectedPage}`}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

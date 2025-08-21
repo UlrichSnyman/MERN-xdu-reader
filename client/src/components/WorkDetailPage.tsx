@@ -29,30 +29,29 @@ const WorkDetailPage: React.FC = () => {
     fetchWork();
   }, [id]);
 
-  const handleLike = async () => {
+  const handleLikeToggle = async () => {
     if (!work) return;
-    
+
     if (!isAuthenticated) {
-      alert('Please login to like works');
+      alert('Please login to like or unlike works');
       return;
     }
-    
+
+    const hasLiked = (work as any).hasLiked;
+
     try {
-      const response = await worksAPI.like(work._id);
+      const apiCall = hasLiked ? worksAPI.unlike : worksAPI.like;
+      const response = await apiCall(work._id);
+      
       setWork(prev => prev ? { 
         ...prev, 
         likes: response.data.likes,
-        hasLiked: response.data.hasLiked 
+        hasLiked: !hasLiked 
       } as any : null);
+
     } catch (err: any) {
-      console.error('Failed to like work:', err);
-      if (err.response?.status === 401) {
-        alert('Please login to like works');
-      } else if (err.response?.status === 400) {
-        alert(err.response.data.error || 'You have already liked this work');
-      } else {
-        alert('Failed to like work');
-      }
+      console.error(`Failed to ${hasLiked ? 'unlike' : 'like'} work:`, err);
+      alert(`An error occurred. Please try again.`);
     }
   };
 
@@ -103,9 +102,9 @@ const WorkDetailPage: React.FC = () => {
             </div>
             <div className="work-actions">
               <button 
-                onClick={handleLike}
+                onClick={handleLikeToggle}
                 className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
-                disabled={(work as any).hasLiked || !isAuthenticated}
+                disabled={!isAuthenticated}
               >
                 {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
               </button>
@@ -125,30 +124,26 @@ const WorkDetailPage: React.FC = () => {
       <div className="pages-section">
         <h2>Pages</h2>
         {Array.isArray(work.pages) && work.pages.length > 0 ? (
-          <div className="pages-grid">
+          <div className="pages-list">
             {work.pages.map((page, index) => (
-              <div key={typeof page === 'string' ? page : page._id} className="page-card">
-                <div className="page-header">
-                  <span className="page-number">Page {index + 1}</span>
+              <div key={typeof page === 'string' ? page : page._id} className="page-item">
+                <div className="page-info">
+                  <span className="page-number">{index + 1}</span>
+                  <h3 className="page-title">
+                    {typeof page === 'string' ? 'Loading...' : page.title}
+                  </h3>
                   {typeof page !== 'string' && (
                     <span className="page-date">
                       {new Date(page.createdAt).toLocaleDateString()}
                     </span>
                   )}
                 </div>
-                <div className="page-content">
-                  <h3 className="page-title">
-                    {typeof page === 'string' ? 'Loading...' : page.title}
-                  </h3>
-                </div>
-                <div className="page-actions">
-                  <Link 
-                    to={`/read/${typeof page === 'string' ? page : page._id}`}
-                    className="read-page-btn"
-                  >
-                    Read Page
-                  </Link>
-                </div>
+                <Link 
+                  to={`/read/${typeof page === 'string' ? page : page._id}`}
+                  className="read-page-btn"
+                >
+                  Read
+                </Link>
               </div>
             ))}
           </div>

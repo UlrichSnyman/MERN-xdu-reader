@@ -7,13 +7,15 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   rows?: number;
+  disabled?: boolean;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
   placeholder = "Start writing...",
-  rows = 15
+  rows = 15,
+  disabled = false,
 }) => {
   const [mode, setMode] = useState<'visual' | 'markdown'>('visual');
 
@@ -74,6 +76,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => handleFormatText('bold')}
             className="format-btn"
             title="Bold"
+            disabled={disabled}
           >
             <strong>B</strong>
           </button>
@@ -82,6 +85,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => handleFormatText('italic')}
             className="format-btn"
             title="Italic"
+            disabled={disabled}
           >
             <em>I</em>
           </button>
@@ -90,6 +94,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => handleFormatText('heading')}
             className="format-btn"
             title="Heading"
+            disabled={disabled}
           >
             H1
           </button>
@@ -98,6 +103,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => handleFormatText('list')}
             className="format-btn"
             title="List"
+            disabled={disabled}
           >
             •
           </button>
@@ -106,6 +112,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => handleFormatText('paragraph')}
             className="format-btn"
             title="Paragraph"
+            disabled={disabled}
           >
             ¶
           </button>
@@ -116,6 +123,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             type="button"
             className={mode === 'visual' ? 'active' : ''}
             onClick={() => setMode('visual')}
+            disabled={disabled}
           >
             Visual
           </button>
@@ -123,6 +131,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             type="button"
             className={mode === 'markdown' ? 'active' : ''}
             onClick={() => setMode('markdown')}
+            disabled={disabled}
           >
             Markdown
           </button>
@@ -137,6 +146,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             placeholder={placeholder}
             rows={rows}
             className="visual-editor"
+            disabled={disabled}
           />
         ) : (
           <CodeEditor
@@ -151,6 +161,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
               fontFamily: 'ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace',
               minHeight: `${rows * 20}px`,
             }}
+            disabled={disabled}
           />
         )}
       </div>

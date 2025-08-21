@@ -14,11 +14,36 @@ const getAllWorks = async (req, res) => {
       return;
     }
     
+    // Include likedBy so we can compute hasLiked for authenticated users, and populate usernames for admins
     const works = await Work.find()
-      .select('title synopsis coverImage category likes createdAt')
-      .sort({ createdAt: -1 });
+      .select('title synopsis coverImage category likes createdAt likedBy')
+      .sort({ createdAt: -1 })
+      .populate('likedBy', 'username')
+      .lean();
     
-    res.json(works);
+    const userId = req.user?.id;
+    const isAdmin = req.user?.role === 'admin';
+
+    const result = works.map(w => {
+      const likedByArray = Array.isArray(w.likedBy) ? w.likedBy : [];
+      const hasLiked = userId
+        ? likedByArray.some(u => (u._id ? u._id.toString() : u.toString()) === userId)
+        : false;
+      const likedByUsers = isAdmin
+        ? likedByArray
+            .filter(u => typeof u === 'object' && u !== null)
+            .map(u => ({ _id: u._id.toString(), username: u.username }))
+        : undefined;
+
+      return {
+        ...w,
+        hasLiked,
+        likedBy: undefined, // hide raw ids
+        ...(isAdmin && { likedByUsers })
+      };
+    });
+
+    res.json(result);
   } catch (error) {
     console.error('Error fetching works:', error);
     // Fallback to mock data on error
@@ -44,7 +69,8 @@ const getWorkById = async (req, res) => {
         path: 'pages',
         select: 'title pageNumber createdAt',
         options: { sort: { pageNumber: 1 } }
-      });
+      })
+      .populate('likedBy', 'username');
     
     if (!work) {
       return res.status(404).json({ error: 'Work not found' });
@@ -53,7 +79,10 @@ const getWorkById = async (req, res) => {
     // Add user-specific data if authenticated
     let workData = work.toObject();
     if (req.user) {
-      workData.hasLiked = work.likedBy.includes(req.user.id);
+      workData.hasLiked = work.likedBy.some(u => u._id.toString() === req.user.id);
+      if (req.user.role === 'admin') {
+        workData.likedByUsers = work.likedBy.map(u => ({ _id: u._id.toString(), username: u.username }));
+      }
       
       // Find user's reading progress
       const progress = work.readingProgress.find(p => p.user.toString() === req.user.id);
@@ -67,6 +96,9 @@ const getWorkById = async (req, res) => {
       }
     }
     
+    // Always hide raw likedBy
+    delete workData.likedBy;
+
     res.json(workData);
   } catch (error) {
     console.error('Error fetching work:', error);
@@ -176,6 +208,34 @@ const likeWork = async (req, res) => {
   }
 };
 
+// Unlike a work (user only)
+const unlikeWork = async (req, res) => {
+  try {
+    const work = await Work.findById(req.params.id);
+
+    if (!work) {
+      return res.status(404).json({ error: 'Work not found' });
+    }
+
+    if (!work.likedBy.includes(req.user.id)) {
+      return res.status(400).json({ error: 'You have not liked this work' });
+    }
+
+    work.likedBy = work.likedBy.filter(userId => userId.toString() !== req.user.id);
+    work.likes = work.likedBy.length;
+    
+    await work.save();
+    
+    res.json({ 
+      likes: work.likes,
+      hasLiked: false
+    });
+  } catch (error) {
+    console.error('Error unliking work:', error);
+    res.status(500).json({ error: 'Server error while unliking work' });
+  }
+};
+
 // Update reading progress (user)
 const updateReadingProgress = async (req, res) => {
   try {
@@ -256,6 +316,7 @@ module.exports = {
   updateWork,
   deleteWork,
   likeWork,
+  unlikeWork,
   updateReadingProgress,
   getReadingProgressStats
 };

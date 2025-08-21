@@ -45,7 +45,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, contentType 
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await commentsAPI.getByContentId(contentId);
+        const response = await commentsAPI.getForContent(contentId);
         setComments(response.data);
       } catch (error) {
         console.error('Failed to load comments:', error);
@@ -85,7 +85,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, contentType 
     setSubmitting(true);
     
     try {
-      await commentsAPI.create(formData);
+      await commentsAPI.create(contentId, formData);
       
       // Clear form
       setFormData(prev => ({

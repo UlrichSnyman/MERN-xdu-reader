@@ -27,34 +27,37 @@ const LoreLibrary: React.FC = () => {
     };
 
     fetchLore();
-  }, [selectedCategory]);
+  }, [selectedCategory, isAuthenticated]);
 
-  const handleLike = async (loreId: string) => {
+  const handleLikeToggle = async (loreId: string) => {
     if (!isAuthenticated) {
-      alert('Please login to like lore entries');
+      alert('Please login to like or unlike lore entries');
       return;
     }
-    
+
+    const loreEntry = loreEntries.find(l => l._id === loreId);
+    if (!loreEntry) return;
+
+    const hasLiked = (loreEntry as any).hasLiked;
+
     try {
-      const response = await loreAPI.like(loreId);
+      const apiCall = hasLiked ? loreAPI.unlike : loreAPI.like;
+      const response = await apiCall(loreId);
+      const updatedLore = response.data;
+
       setLoreEntries(prevLore =>
         prevLore.map(lore =>
-          lore._id === loreId ? { 
-            ...lore, 
-            likes: response.data.likes,
-            hasLiked: response.data.hasLiked 
-          } as any : lore
+          lore._id === loreId ? { ...lore, ...updatedLore } : lore
         )
       );
     } catch (err: any) {
-      console.error('Failed to like lore:', err);
-      if (err.response?.status === 401) {
-        alert('Please login to like lore entries');
-      } else if (err.response?.status === 400) {
-        alert(err.response.data.error || 'You have already liked this lore entry');
-      } else {
-        alert('Failed to like lore entry');
+      console.error(`Failed to ${hasLiked ? 'unlike' : 'like'} lore:`, err);
+      // If server says already liked from previous state, sync UI so user can unlike next
+      if (!hasLiked && err?.response?.status === 400) {
+        setLoreEntries(prevLore => prevLore.map(l => l._id === loreId ? { ...l, hasLiked: true } as any : l));
+        return;
       }
+      alert(`An error occurred. Please try again.`);
     }
   };
 
@@ -116,10 +119,9 @@ const LoreLibrary: React.FC = () => {
               <div className="lore-content">
                 <h3>{lore.title}</h3>
                 <p className="lore-preview">
-                  {lore.content.length > 150 
-                    ? `${lore.content.substring(0, 150)}...` 
-                    : lore.content
-                  }
+                  {lore.content && lore.content.length > 150
+                    ? `${lore.content.substring(0, 150)}...`
+                    : lore.content}
                 </p>
               </div>
               <div className="lore-actions">
@@ -127,13 +129,23 @@ const LoreLibrary: React.FC = () => {
                   Read More
                 </Link>
                 <button 
-                  onClick={() => handleLike(lore._id)}
+                  onClick={() => handleLikeToggle(lore._id)}
                   className={`like-btn ${(lore as any).hasLiked ? 'liked' : ''}`}
-                  disabled={(lore as any).hasLiked || !isAuthenticated}
+                  disabled={!isAuthenticated}
                 >
                   {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
                 </button>
               </div>
+              {( (lore as any).likedByUsers && (lore as any).likedByUsers.length > 0 ) && (
+                <div className="liked-by-box">
+                  <span className="liked-by-title">Liked by:</span>
+                  <div className="liked-by-list">
+                    {(lore as any).likedByUsers.map((u: any) => (
+                      <span key={u._id} className="liked-by-chip">{u.username}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

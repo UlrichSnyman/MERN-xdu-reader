@@ -7,17 +7,19 @@ const {
   createLore,
   updateLore,
   deleteLore,
-  likeLore
+  likeLore,
+  unlikeLore
 } = require('../controllers/loreController');
 
 // Public routes
-router.get('/', getAllLore);
+router.get('/', optionalAuthMiddleware, getAllLore);
 
 // Routes that can benefit from authentication but don't require it
 router.get('/:id', optionalAuthMiddleware, getLoreById);
 
 // User-protected routes
 router.post('/:id/like', authMiddleware, likeLore);
+router.delete('/:id/like', authMiddleware, unlikeLore);
 
 // Admin-protected routes
 router.post('/', adminMiddleware, createLore);

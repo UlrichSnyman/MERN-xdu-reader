@@ -101,8 +101,6 @@ const ReaderView: React.FC = () => {
     localStorage.setItem('readerSettings', JSON.stringify(settings));
   }, [settings]);
 
-  // Page likes removed - users can only like works, not individual pages
-
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;
 

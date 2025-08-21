@@ -8,18 +8,20 @@ const {
   updateWork,
   deleteWork,
   likeWork,
+  unlikeWork,
   updateReadingProgress,
   getReadingProgressStats
 } = require('../controllers/workController');
 
 // Public routes
-router.get('/', getAllWorks);
+router.get('/', optionalAuthMiddleware, getAllWorks);
 
 // Routes that can benefit from authentication but don't require it
 router.get('/:id', optionalAuthMiddleware, getWorkById);
 
 // User-protected routes
 router.post('/:id/like', authMiddleware, likeWork);
+router.delete('/:id/like', authMiddleware, unlikeWork);
 router.post('/progress', authMiddleware, updateReadingProgress);
 
 // Admin-protected routes

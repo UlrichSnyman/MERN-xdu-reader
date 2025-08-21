@@ -1,4 +1,5 @@
 const Lore = require('../models/Lore');
+const User = require('../models/User');
 
 // Get all lore entries (public)
 const getAllLore = async (req, res) => {
@@ -6,11 +7,23 @@ const getAllLore = async (req, res) => {
     const { category } = req.query;
     const filter = category ? { category } : {};
     
-    const lore = await Lore.find(filter)
-      .select('title category likes createdAt')
+    const loreEntries = await Lore.find(filter)
+      .populate({ path: 'likedBy', select: 'username' })
+      .select('title category likes likedBy createdAt')
       .sort({ createdAt: -1 });
+
+    let results = loreEntries.map(lore => {
+      const loreObject = lore.toObject();
+      loreObject.hasLiked = req.user ? lore.likedBy.some(user => user._id.equals(req.user.id)) : false;
+      
+      if (req.user?.role === 'admin') {
+        loreObject.likedByUsers = loreObject.likedBy;
+      }
+      delete loreObject.likedBy;
+      return loreObject;
+    });
     
-    res.json(lore);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching lore:', error);
     res.status(500).json({ error: 'Server error while fetching lore' });
@@ -20,17 +33,22 @@ const getAllLore = async (req, res) => {
 // Get lore by ID (public)
 const getLoreById = async (req, res) => {
   try {
-    const lore = await Lore.findById(req.params.id);
+    const lore = await Lore.findById(req.params.id).populate({ 
+      path: 'likedBy', 
+      select: 'username' 
+    });
     
     if (!lore) {
       return res.status(404).json({ error: 'Lore entry not found' });
     }
     
-    // Add user-specific data if authenticated
     let loreData = lore.toObject();
-    if (req.user) {
-      loreData.hasLiked = lore.likedBy.includes(req.user.id);
+    loreData.hasLiked = req.user ? lore.likedBy.some(user => user._id.equals(req.user.id)) : false;
+
+    if (req.user?.role === 'admin') {
+      loreData.likedByUsers = loreData.likedBy;
     }
+    delete loreData.likedBy;
     
     res.json(loreData);
   } catch (error) {
@@ -100,37 +118,59 @@ const deleteLore = async (req, res) => {
   }
 };
 
-// Like a lore entry (public)
+// Like a lore entry (user only)
 const likeLore = async (req, res) => {
   try {
-    const userId = req.user ? req.user.id : null;
-    
-    if (!userId) {
-      return res.status(401).json({ error: 'Authentication required to like lore' });
-    }
-    
     const lore = await Lore.findById(req.params.id);
-    
     if (!lore) {
       return res.status(404).json({ error: 'Lore entry not found' });
     }
-    
-    // Check if user has already liked this lore
-    const hasLiked = lore.likedBy.includes(userId);
-    
-    if (hasLiked) {
+
+    const userId = req.user.id;
+    if (lore.likedBy.includes(userId)) {
       return res.status(400).json({ error: 'You have already liked this lore entry' });
     }
-    
-    // Add user to likedBy array and increment likes
+
     lore.likedBy.push(userId);
-    lore.likes += 1;
+    lore.likes = lore.likedBy.length;
     await lore.save();
-    
+
+    // Update user document
+    await User.findByIdAndUpdate(userId, { $addToSet: { likedLore: lore._id } });
+
     res.json({ likes: lore.likes, hasLiked: true });
   } catch (error) {
     console.error('Error liking lore:', error);
     res.status(500).json({ error: 'Server error while liking lore' });
+  }
+};
+
+// Unlike a lore entry (user only)
+const unlikeLore = async (req, res) => {
+  try {
+    const lore = await Lore.findById(req.params.id);
+    if (!lore) {
+      return res.status(404).json({ error: 'Lore entry not found' });
+    }
+
+    const userId = req.user.id;
+    const userIndex = lore.likedBy.indexOf(userId);
+
+    if (userIndex === -1) {
+      return res.status(400).json({ error: 'You have not liked this lore entry' });
+    }
+
+    lore.likedBy.splice(userIndex, 1);
+    lore.likes = lore.likedBy.length;
+    await lore.save();
+
+    // Update user document
+    await User.findByIdAndUpdate(userId, { $pull: { likedLore: lore._id } });
+
+    res.json({ likes: lore.likes, hasLiked: false });
+  } catch (error) {
+    console.error('Error unliking lore:', error);
+    res.status(500).json({ error: 'Server error while unliking lore' });
   }
 };
 
@@ -140,5 +180,6 @@ module.exports = {
   createLore,
   updateLore,
   deleteLore,
-  likeLore
+  likeLore,
+  unlikeLore
 };

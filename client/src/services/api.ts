@@ -32,6 +32,7 @@ export const authAPI = {
     api.post('/auth/register', userData),
 };
 
+// Works API
 export const worksAPI = {
   getAll: () => api.get('/works'),
   getById: (id: string) => api.get(`/works/${id}`),
@@ -39,37 +40,45 @@ export const worksAPI = {
   update: (id: string, workData: any) => api.put(`/works/${id}`, workData),
   delete: (id: string) => api.delete(`/works/${id}`),
   like: (id: string) => api.post(`/works/${id}/like`),
-  updateProgress: (workId: string, pageId: string) => api.post('/works/progress', { workId, pageId }),
-  getProgressStats: () => api.get('/works/admin/progress-stats'),
+  unlike: (id: string) => api.delete(`/works/${id}/like`),
+  updateProgress: (id: string, data: any) => api.post(`/works/${id}/progress`, data),
+  getProgressStats: () => api.get('/works/progress-stats'),
 };
 
-export const pagesAPI = {
-  getById: (id: string) => api.get(`/pages/${id}`),
-  create: (pageData: any) => api.post('/pages', pageData),
-  update: (id: string, pageData: any) => api.put(`/pages/${id}`, pageData),
-  delete: (id: string) => api.delete(`/pages/${id}`),
-  like: (id: string) => api.post(`/pages/${id}/like`),
-};
-
+// Lore API
 export const loreAPI = {
   getAll: (category?: string) => api.get('/lore', { params: { category } }),
   getById: (id: string) => api.get(`/lore/${id}`),
-  create: (loreData: any) => api.post('/lore', loreData),
-  update: (id: string, loreData: any) => api.put(`/lore/${id}`, loreData),
+  create: (data: any) => api.post('/lore', data),
+  update: (id: string, data: any) => api.put(`/lore/${id}`, data),
   delete: (id: string) => api.delete(`/lore/${id}`),
   like: (id: string) => api.post(`/lore/${id}/like`),
+  unlike: (id: string) => api.delete(`/lore/${id}/like`),
 };
 
-export const commentsAPI = {
-  getByContentId: (contentId: string) => api.get(`/comments/${contentId}`),
-  create: (commentData: any) => api.post('/comments', commentData),
-  delete: (id: string) => api.delete(`/comments/${id}`),
+// Pages API
+export const pagesAPI = {
+  getById: (id: string) => api.get(`/pages/${id}`),
+  create: (data: any) => api.post('/pages', data),
+  update: (id: string, data: any) => api.put(`/pages/${id}`, data),
+  delete: (id: string) => api.delete(`/pages/${id}`),
+  like: (id: string) => api.post(`/pages/${id}/like`),
+  unlike: (id: string) => api.delete(`/pages/${id}/like`),
+  getForWork: (workId: string) => api.get(`/works/${workId}/pages`),
 };
 
+// Suggestions API
 export const suggestionsAPI = {
   getAll: () => api.get('/suggestions'),
   create: (suggestionData: any) => api.post('/suggestions', suggestionData),
   delete: (id: string) => api.delete(`/suggestions/${id}`),
+};
+
+// Comments API
+export const commentsAPI = {
+  getForContent: (contentId: string) => api.get(`/comments/content/${contentId}`),
+  create: (contentId: string, data: any) => api.post(`/comments/content/${contentId}`, data),
+  delete: (commentId: string) => api.delete(`/comments/${commentId}`),
 };
 
 export const uploadAPI = {

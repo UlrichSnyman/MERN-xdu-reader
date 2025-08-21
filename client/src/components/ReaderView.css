@@ -63,6 +63,34 @@
   margin-bottom: 1rem;
 }
 
+.like-btn {
+  background: var(--bg-tertiary, #f8f9fa);
+  border: 1px solid var(--border-color, #ddd);
+  color: var(--text-primary, #2c3e50);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.like-btn:hover:not(:disabled) {
+  background-color: var(--accent-color, #3498db);
+  color: white;
+  border-color: var(--accent-color, #3498db);
+}
+
+.like-btn.liked {
+  background-color: var(--success-color, #27ae60);
+  color: white;
+  border-color: var(--success-color, #27ae60);
+}
+
+.like-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .reader-content {
   background: var(--bg-secondary);
   padding: 3rem 2rem;
