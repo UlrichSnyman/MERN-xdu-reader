@@ -17,7 +17,10 @@ const ReaderView: React.FC = () => {
     fontFamily: 'default',
     isPlaying: false,
     speechRate: 1.0,
+    selectedVoice: '',
   });
+  
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -38,6 +41,30 @@ const ReaderView: React.FC = () => {
 
     fetchPage();
   }, [pageId]);
+
+  useEffect(() => {
+    // Load available voices
+    const loadVoices = () => {
+      if ('speechSynthesis' in window) {
+        const voices = speechSynthesis.getVoices();
+        setAvailableVoices(voices);
+        if (voices.length > 0 && !settings.selectedVoice) {
+          setSettings(prev => ({ ...prev, selectedVoice: voices[0].name }));
+        }
+      }
+    };
+
+    loadVoices();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, [settings.selectedVoice]);
 
   // Load settings from localStorage
   useEffect(() => {
@@ -69,6 +96,12 @@ const ReaderView: React.FC = () => {
       utterance.rate = settings.speechRate;
       utterance.pitch = 1;
       utterance.volume = 1;
+      
+      // Set selected voice
+      const selectedVoice = availableVoices.find(voice => voice.name === settings.selectedVoice);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
       
       utterance.onstart = () => {
         setSettings(prev => ({ ...prev, isPlaying: true }));
@@ -182,6 +215,22 @@ const ReaderView: React.FC = () => {
             <div className="setting-group">
               <label>Text-to-Speech:</label>
               <div className="tts-controls">
+                {/* Voice Selection */}
+                <div className="voice-control">
+                  <label>Voice:</label>
+                  <select
+                    value={settings.selectedVoice}
+                    onChange={(e) => setSettings(prev => ({ ...prev, selectedVoice: e.target.value }))}
+                    className="voice-select"
+                  >
+                    {availableVoices.map((voice) => (
+                      <option key={voice.name} value={voice.name}>
+                        {voice.name} ({voice.lang})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
                 <button
                   onClick={settings.isPlaying ? stopTextToSpeech : startTextToSpeech}
                   className={`tts-btn ${settings.isPlaying ? 'playing' : ''}`}
