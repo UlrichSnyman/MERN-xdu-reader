@@ -1,38 +1,60 @@
 .comment-section {
   background: var(--bg-secondary);
-  padding: 2rem;
-  border-radius: 12px;
+  padding: 1.5rem;
   box-shadow: var(--shadow);
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   border: 1px solid var(--border-color);
+  position: relative;
+}
+
+.comment-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 4px;
+  background: var(--gradient-accent);
+  clip-path: polygon(20% 0, 100% 0, 80% 100%, 0% 100%);
 }
 
 .comment-section h3 {
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  font-size: 1.3rem;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.4rem;
+  position: relative;
+}
+
+.comment-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 40%;
+  height: 2px;
+  background: var(--accent-color);
 }
 
 .comment-form {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
   background: var(--bg-tertiary);
-  border-radius: 8px;
   border: 1px solid var(--border-color);
+  clip-path: polygon(0 0, 95% 0, 100% 10px, 100% 100%, 0 100%);
 }
 
 .form-row {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .comment-form input,
 .comment-form textarea {
   width: 100%;
-  padding: 0.8rem;
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
+  padding: 0.6rem;
+  border: 1px solid var(--border-color);
   font-size: 1rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-sizing: border-box;
@@ -45,7 +67,7 @@
 .comment-form textarea:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .comment-form input:disabled,
