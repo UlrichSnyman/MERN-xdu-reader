@@ -122,8 +122,7 @@
   white-space: nowrap;
   flex-shrink: 0;
   font-weight: 500;
-  border-radius: 8px;
-  /* Removed clip-path to make same shape as read-first button */
+  border-radius: 0; /* square corners to match global */
 }
 
 .like-btn:hover:not(:disabled) {
@@ -152,13 +151,31 @@
   font-weight: 500;
   transition: background-color 0.3s ease;
   white-space: nowrap;
-  border-radius: 8px;
-  /* Removed clip-path to make same shape as like button */
+  border-radius: 0; /* square corners to match global */
 }
 
 .read-btn.read-first:hover {
   background-color: var(--success-hover);
   box-shadow: var(--shadow-glow);
+}
+
+/* Dashboard-inspired glassy buttons */
+.work-actions .read-btn.read-first,
+.work-actions .like-btn {
+  border-radius: 0;
+  height: var(--btn-height);
+}
+
+/* Interlocking parallelograms when next to each other */
+/* Remove local parallelogram clip-path, let App.css control */
+.work-actions .like-btn,
+.work-actions .read-btn.read-first {
+  clip-path: initial;
+}
+
+.work-actions .like-btn:last-child,
+.work-actions .read-btn.read-first:last-child {
+  clip-path: initial;
 }
 
 .pages-section {

@@ -178,7 +178,39 @@
   line-height: 1;
   flex: 1 1 0%;
   min-width: 0;
+  border-radius: 0; /* square corners to match global */
 }
+
+/* Glassy parallelogram buttons (dashboard-inspired) */
+.lore-actions > .read-btn,
+.lore-actions > .like-btn {
+  background: var(--gradient-primary);
+  color: #fff;
+  border: 1px solid var(--border-accent);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-glow);
+  border-radius: 0;
+  height: var(--btn-height);
+}
+
+.lore-actions > .read-btn::before,
+.lore-actions > .like-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: transform 0.35s ease;
+  transform: translateX(0);
+}
+
+.lore-actions > .read-btn:hover::before,
+.lore-actions > .like-btn:hover::before {
+  transform: translateX(200%);
+}
+
+/* Remove local clip-path overrides to allow global puzzle-piece shape */
 
 .read-btn:hover {
   opacity: 0.9;

@@ -48,6 +48,13 @@
   --transition-smooth: all 0.2s ease-out;
 }
 
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  --btn-height: 44px;
+  --para-slant-px: 12px;
+  --glassy-sheen: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -179,6 +186,116 @@ button.btn-primary {
 button.btn-primary:hover {
   opacity: 0.9;
   box-shadow: var(--shadow-hover), var(--shadow-glow);
+}
+
+/* Global action button glass effect and interlocking shapes */
+[class$="actions"] > a,
+[class$="actions"] > button {
+  position: relative;
+  overflow: hidden;
+  height: var(--btn-height);
+  min-height: var(--btn-height);
+  line-height: calc(var(--btn-height) - 2px);
+  border-radius: 0;
+}
+
+[class$="actions"] > a::before,
+[class$="actions"] > button::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: var(--glassy-sheen);
+  transition: transform 0.35s ease;
+}
+
+[class$="actions"] > a:hover::before,
+[class$="actions"] > button:hover::before {
+  transform: translateX(200%);
+}
+
+/* New sliced-button shape logic */
+/* Base: both sides angled (used for middle buttons) */
+[class$="actions"] > a,
+[class$="actions"] > button {
+  clip-path: polygon(var(--para-slant-px) 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%);
+}
+
+/* First button: straight left, angled right */
+[class$="actions"] > a:first-child,
+[class$="actions"] > button:first-child {
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%);
+}
+
+/* Last button: angled left, straight right */
+[class$="actions"] > a:last-child,
+[class$="actions"] > button:last-child {
+  clip-path: polygon(var(--para-slant-px) 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Only one button: straight left, angled right */
+[class$="actions"] > a:only-child,
+[class$="actions"] > button:only-child {
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%);
+}
+
+/* High-specificity for .read-btn/.like-btn */
+[class$="actions"] > .read-btn,
+[class$="actions"] > .like-btn {
+  /* Base both-angled */
+  clip-path: polygon(var(--para-slant-px) 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%) !important;
+}
+[class$="actions"] > .read-btn:first-child,
+[class$="actions"] > .like-btn:first-child {
+  /* straight left */
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%) !important;
+}
+[class$="actions"] > .read-btn:last-child,
+[class$="actions"] > .like-btn:last-child {
+  /* straight right */
+  clip-path: polygon(var(--para-slant-px) 0, 100% 0, 100% 100%, 0 100%) !important;
+}
+[class$="actions"] > .read-btn:only-child,
+[class$="actions"] > .like-btn:only-child {
+  /* single button: straight left */
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%) !important;
+}
+
+/* Sliced action rows: flush, equal buttons */
+[class$="actions"] {
+  display: flex;
+  gap: 0 !important;
+  justify-content: flex-start !important;
+}
+
+[class$="actions"] > a,
+[class$="actions"] > button {
+  flex: 1 1 0%;
+  min-width: 0;
+  text-align: center;
+}
+
+/* Enforce dimensions and square corners with high specificity */
+[class$="actions"] > .read-btn,
+[class$="actions"] > .like-btn {
+  height: var(--btn-height) !important;
+  min-height: var(--btn-height) !important;
+  line-height: calc(var(--btn-height) - 2px) !important;
+  border-radius: 0 !important;
+}
+
+/* Global Like states */
+[class$="actions"] .like-btn:not(.liked) {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-accent) !important;
+  box-shadow: none !important;
+}
+
+[class$="actions"] .like-btn.liked {
+  background: var(--gradient-primary) !important;
+  color: #fff !important;
+  border: 1px solid var(--border-accent) !important;
 }
 
 /* Responsive helpers - compact */

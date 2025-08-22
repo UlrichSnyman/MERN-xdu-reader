@@ -69,6 +69,18 @@
   margin-bottom: 1rem;
 }
 
+/* Dashboard-inspired glassy buttons */
+.lore-actions .like-btn {
+  /* Defer look to global rules in App.css */
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-accent);
+  box-shadow: none;
+  border-radius: 0; /* square corners for puzzle-piece shape */
+  height: var(--btn-height);
+}
+
+/* Parallelogram shape */
 .like-btn {
   background: var(--bg-tertiary, #f8f9fa);
   border: 1px solid var(--border-color, #ddd);
