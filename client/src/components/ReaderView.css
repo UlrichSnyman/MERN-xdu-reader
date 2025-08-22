@@ -120,44 +120,41 @@
   white-space: pre-line;
 }
 
-.page-navigation {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 3rem;
-}
-
-.nav-btn {
-  background: var(--gradient-primary);
-  color: white;
+/* Side Arrow Navigation */
+.nav-arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--text-primary);
+  color: var(--bg-primary);
   border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: bold;
   cursor: pointer;
-  font-weight: 500;
+  z-index: 100;
+  opacity: 0.6;
   transition: var(--transition-smooth);
-  flex: 1;
-  max-width: 200px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.nav-btn:hover:not(:disabled) {
+.nav-arrow:hover {
   opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-50%) scale(1.1);
   box-shadow: var(--shadow-hover);
 }
 
-.nav-btn:disabled {
-  background-color: var(--text-muted);
-  cursor: not-allowed;
-  opacity: 0.6;
+.nav-arrow-left {
+  left: 2rem;
 }
 
-.prev-btn {
-  margin-right: auto;
-}
-
-.next-btn {
-  margin-left: auto;
+.nav-arrow-right {
+  right: 2rem;
 }
 
 /* Enhanced Settings Panel */
@@ -387,12 +384,19 @@
     font-size: 1.5rem;
   }
   
-  .page-navigation {
-    flex-direction: column;
+  /* Make navigation arrows smaller and closer on mobile */
+  .nav-arrow {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
   }
   
-  .nav-btn {
-    max-width: none;
+  .nav-arrow-left {
+    left: 1rem;
+  }
+  
+  .nav-arrow-right {
+    right: 1rem;
   }
   
   .settings-panel {

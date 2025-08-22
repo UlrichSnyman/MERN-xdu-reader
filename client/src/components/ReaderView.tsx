@@ -321,24 +321,26 @@ const ReaderView: React.FC = () => {
         ))}
       </div>
 
-      {/* Page Navigation */}
-      <div className="page-navigation">
+      {/* Side Arrow Navigation */}
+      {page.navigation?.previous && (
         <button
           onClick={() => navigatePage('previous')}
-          disabled={!page.navigation?.previous}
-          className="nav-btn prev-btn"
+          className="nav-arrow nav-arrow-left"
+          aria-label="Previous Page"
         >
-          ← Previous Page
+          ←
         </button>
-        
+      )}
+      
+      {page.navigation?.next && (
         <button
           onClick={() => navigatePage('next')}
-          disabled={!page.navigation?.next}
-          className="nav-btn next-btn"
+          className="nav-arrow nav-arrow-right"
+          aria-label="Next Page"
         >
-          Next Page →
+          →
         </button>
-      </div>
+      )}
 
       {/* Comments Section */}
       <CommentSection 
