@@ -106,16 +106,21 @@
 
 .work-actions {
   display: flex;
-  gap: 0; /* ensure no visual gaps */
+  gap: 0;
   align-items: stretch;
-  margin-bottom: 0.75rem;
-  /* Changed order: like and read first buttons moved to the left */
 }
 
-/* Remove any default margins on direct children */
 .page-actions > * { margin: 0; }
 
-/* Force the Read anchor to render as a button */
+/* Normalize all buttons in the group so they touch perfectly */
+.page-actions .read-page-btn,
+.page-actions .edit-page-btn,
+.page-actions .delete-page-btn {
+  /* Removed local clip-path override so global parallelogram styles apply */
+  border-radius: 0;
+}
+
+/* Make the Read link look and behave like a button */
 .page-actions .read-page-btn,
 .page-actions .read-page-btn:link,
 .page-actions .read-page-btn:visited {
@@ -128,14 +133,12 @@
   text-decoration: none !important;
   padding: 0.5rem 1rem;
   height: var(--btn-height);
-  line-height: normal;
 }
 
-/* Keep edit/delete buttons same height and touching */
+/* Keep edit/delete consistent height */
 .page-actions .edit-page-btn,
 .page-actions .delete-page-btn {
   height: var(--btn-height);
-  line-height: normal;
 }
 
 .like-btn {
@@ -196,7 +199,7 @@
 
 /* Interlocking parallelograms when next to each other */
 /* Remove local parallelogram clip-path, let App.css control */
-.work-actions .like-btn,
+/* .work-actions .like-btn,
 .work-actions .read-btn.read-first {
   clip-path: initial;
 }
@@ -204,7 +207,7 @@
 .work-actions .like-btn:last-child,
 .work-actions .read-btn.read-first:last-child {
   clip-path: initial;
-}
+} */
 
 .pages-section {
   background: var(--bg-secondary);
@@ -284,12 +287,12 @@
   border-radius: 0;
 }
 
-/* Make siblings touch by removing border radii on the touching sides */
-.page-actions .read-page-btn + .edit-page-btn,
+/* Remove sibling margin overrides so global negative overlap applies */
+/* .page-actions .read-page-btn + .edit-page-btn,
 .page-actions .edit-page-btn + .delete-page-btn,
 .page-actions .read-page-btn + .delete-page-btn {
-  margin-left: 0; /* ensure no spacing */
-}
+  margin-left: 0;
+} */
 
 /* Delete button look */
 .delete-page-btn {
@@ -305,12 +308,12 @@
   box-shadow: var(--shadow-glow);
 }
 
-/* When only one button exists, keep it looking like a normal block */
-.page-actions:only-child,
+/* Remove rectangle override for single-child; let global rules handle only-child */
+/* .page-actions:only-child,
 .page-actions > a:only-child,
 .page-actions > button:only-child {
   clip-path: none;
-}
+} */
 
 @media (max-width: 768px) {
   .work-info {

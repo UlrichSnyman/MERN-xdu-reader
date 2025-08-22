@@ -238,10 +238,10 @@ button.btn-primary:hover {
   clip-path: polygon(var(--para-slant-px) 0, 100% 0, 100% 100%, 0 100%);
 }
 
-/* Only one button: straight left, angled right */
+/* Only one button: make it a normal rectangle */
 [class$="actions"] > a:only-child,
 [class$="actions"] > button:only-child {
-  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%);
+  clip-path: none;
 }
 
 /* High-specificity for .read-btn/.like-btn */
@@ -262,8 +262,8 @@ button.btn-primary:hover {
 }
 [class$="actions"] > .read-btn:only-child,
 [class$="actions"] > .like-btn:only-child {
-  /* single button: straight left */
-  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%) !important;
+  /* single button should be rectangle */
+  clip-path: none !important;
 }
 
 /* Sliced action rows: flush, equal buttons */
@@ -279,6 +279,13 @@ button.btn-primary:hover {
   min-width: 0;
   text-align: center;
 }
+
+/* Eliminate any leftover spacing between inline elements */
+.page-actions { font-size: 0; }
+.page-actions > * { font-size: 1rem; }
+
+/* Remove old override that forced rectangles for page-actions */
+/* (Intentionally removed the previous .page-actions clip-path: none rule) */
 
 /* Enforce dimensions and square corners with high specificity */
 [class$="actions"] > .read-btn,
@@ -301,6 +308,24 @@ button.btn-primary:hover {
   background: var(--gradient-primary) !important;
   color: #fff !important;
   border: 1px solid var(--border-accent) !important;
+}
+
+/* Page actions as parallelograms with slight overlap so corners touch */
+.page-actions > * {
+  clip-path: polygon(var(--para-slant-px) 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%) !important;
+}
+.page-actions > *:first-child {
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--para-slant-px)) 100%, 0 100%) !important;
+}
+.page-actions > *:last-child {
+  clip-path: polygon(var(--para-slant-px) 0, 100% 0, 100% 100%, 0 100%) !important;
+}
+.page-actions > *:only-child {
+  clip-path: none !important; /* single button stays rectangular */
+}
+.page-actions > * + * {
+  margin-left: calc(-1 * var(--para-slant-px));
+  border-left: 0;
 }
 
 /* Responsive helpers - compact */
@@ -327,16 +352,4 @@ button.btn-primary:hover {
     box-shadow: none;
     padding: 0;
   }
-}
-
-/* Overlap neighbors slightly so the angled faces touch with no visible gap */
-[class$="actions"] > a + a,
-[class$="actions"] > button + button {
-  margin-left: calc(-1 * var(--para-slant-px));
-}
-
-/* Ensure hovered button sits above at the seam */
-[class$="actions"] > a:hover,
-[class$="actions"] > button:hover {
-  z-index: 2;
 }

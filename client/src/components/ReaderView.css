@@ -34,11 +34,12 @@
   display: inline-flex;
   gap: 0;
   align-items: center;
+  /* Let App.css handle clip-path shapes and negative margin overlap */
 }
 
 .reader-nav-actions .edit-page-btn + .settings-btn,
 .reader-nav-actions .settings-btn + .edit-page-btn {
-  margin-left: 0;
+  margin-left: 0; /* no extra spacing; overlap handled globally */
 }
 
 /* Removed decorative line that was interfering with layout */
