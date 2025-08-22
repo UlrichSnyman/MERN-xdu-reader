@@ -15,7 +15,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      (config.headers as any).Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -41,8 +41,10 @@ export const worksAPI = {
   delete: (id: string) => api.delete(`/works/${id}`),
   like: (id: string) => api.post(`/works/${id}/like`),
   unlike: (id: string) => api.delete(`/works/${id}/like`),
-  updateProgress: (id: string, data: any) => api.post(`/works/${id}/progress`, data),
-  getProgressStats: () => api.get('/works/progress-stats'),
+  // Corrected: server expects POST /works/progress with { workId, pageId }
+  updateProgress: (workId: string, pageId: string) => api.post('/works/progress', { workId, pageId }),
+  // Corrected: admin endpoint path
+  getProgressStats: () => api.get('/works/admin/progress-stats'),
 };
 
 // Lore API

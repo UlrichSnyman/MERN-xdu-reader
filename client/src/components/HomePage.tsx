@@ -10,12 +10,35 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
+  const [resumeMap, setResumeMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchWorks = async () => {
       try {
         const response = await worksAPI.getAll();
-        setWorks(response.data);
+        const list = response.data as any[];
+        setWorks(list as Work[]);
+
+        // Fetch per-work userProgress to build Resume links (only when logged in)
+        if (list.length && isAuthenticated) {
+          const results = await Promise.all(
+            list.map(async (w) => {
+              try {
+                const detail = await worksAPI.getById(w._id);
+                const cp = (detail.data as any)?.userProgress?.currentPage;
+                // currentPage may be an object or id string; normalize to string
+                const pageId = typeof cp === 'object' && cp !== null ? (cp as any)._id : cp;
+                return pageId ? [w._id, pageId as string] : null;
+              } catch {
+                return null;
+              }
+            })
+          );
+          const mapEntries = results.filter(Boolean) as [string, string][];
+          setResumeMap(Object.fromEntries(mapEntries));
+        } else {
+          setResumeMap({});
+        }
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load works');
       } finally {
@@ -44,7 +67,7 @@ const HomePage: React.FC = () => {
 
       setWorks(prevWorks =>
         prevWorks.map(w =>
-          w._id === workId ? { ...w, ...updatedWork } : w
+          w._id === workId ? { ...w, ...updatedWork } as any : w
         )
       );
     } catch (err: any) {
@@ -52,7 +75,7 @@ const HomePage: React.FC = () => {
       // If server says already liked from previous state, sync UI so user can unlike next
       if (!hasLiked && err?.response?.status === 400) {
         // Manually sync the client state if the server says it's already liked
-        setWorks(prevWorks => prevWorks.map(w => w._id === workId ? { ...w, hasLiked: true } : w));
+        setWorks(prevWorks => prevWorks.map(w => w._id === workId ? { ...w, hasLiked: true } as any : w));
         return;
       }
       alert('An error occurred. Please try again.');
@@ -115,12 +138,23 @@ const HomePage: React.FC = () => {
                     >
                       {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
                     </button>
+
+                    {isAuthenticated && resumeMap[work._id] && (
+                      <Link 
+                        to={`/read/${resumeMap[work._id]}`} 
+                        className="read-btn continue-btn"
+                        title="Continue where you left off"
+                      >
+                        Continue
+                      </Link>
+                    )}
+
                     {Array.isArray(work.pages) && work.pages.length > 0 && (
                       <Link 
                         to={`/read/${typeof work.pages[0] === 'string' ? work.pages[0] : work.pages[0]._id}`} 
                         className="read-btn read-first"
                       >
-                        Read First
+                        Start Reading
                       </Link>
                     )}
                     <Link to={`/work/${work._id}`} className="read-btn">

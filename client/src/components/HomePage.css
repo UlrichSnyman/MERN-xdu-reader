@@ -149,6 +149,11 @@
   box-shadow: var(--shadow-glow);
   border-radius: 0;
   height: var(--btn-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  font-weight: 600;
 }
 
 .work-actions > .read-btn::before,
@@ -205,11 +210,11 @@
 }
 
 .read-btn.read-first {
-  background: var(--success-color);
+  background: var(--gradient-primary);
 }
 
 .read-btn.read-first:hover {
-  background: var(--success-hover);
+  opacity: 0.9;
 }
 
 .work-card .like-btn {
@@ -364,6 +369,13 @@
   line-height: 1;
   flex: 1 1 0%;
   min-width: 0; /* allow equal distribution */
+}
+
+.work-actions > .continue-btn {
+  background: var(--gradient-primary);
+  color: #fff;
+  border: 1px solid var(--border-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 @media (max-width: 768px) {

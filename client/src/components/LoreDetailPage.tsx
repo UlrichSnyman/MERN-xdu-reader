@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { loreAPI } from '../services/api';
 import { Lore } from '../types';
-import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
 import './LoreDetailPage.css';
 
@@ -11,7 +10,6 @@ const LoreDetailPage: React.FC = () => {
   const [lore, setLore] = useState<Lore | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchLore = async () => {
@@ -29,33 +27,6 @@ const LoreDetailPage: React.FC = () => {
 
     fetchLore();
   }, [id]);
-
-  const handleLike = async () => {
-    if (!lore) return;
-    
-    if (!isAuthenticated) {
-      alert('Please login to like lore entries');
-      return;
-    }
-    
-    try {
-      const response = await loreAPI.like(lore._id);
-      setLore(prev => prev ? { 
-        ...prev, 
-        likes: response.data.likes,
-        hasLiked: response.data.hasLiked 
-      } as any : null);
-    } catch (err: any) {
-      console.error('Failed to like lore:', err);
-      if (err.response?.status === 401) {
-        alert('Please login to like lore entries');
-      } else if (err.response?.status === 400) {
-        alert(err.response.data.error || 'You have already liked this lore entry');
-      } else {
-        alert('Failed to like lore entry');
-      }
-    }
-  };
 
   if (loading) {
     return (
@@ -93,16 +64,6 @@ const LoreDetailPage: React.FC = () => {
           
           <div className="lore-stats">
             <span>{lore.likes} likes</span>
-          </div>
-          
-          <div className="lore-actions">
-            <button 
-              onClick={handleLike}
-              className={`like-btn ${(lore as any).hasLiked ? 'liked' : ''}`}
-              disabled={(lore as any).hasLiked || !isAuthenticated}
-            >
-              {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
-            </button>
           </div>
         </div>
       </div>

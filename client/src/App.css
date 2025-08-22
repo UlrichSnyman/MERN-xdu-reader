@@ -323,3 +323,15 @@ button.btn-primary:hover {
     padding: 0;
   }
 }
+
+/* Overlap neighbors slightly so the angled faces touch with no visible gap */
+[class$="actions"] > a + a,
+[class$="actions"] > button + button {
+  margin-left: calc(-1 * var(--para-slant-px));
+}
+
+/* Ensure hovered button sits above at the seam */
+[class$="actions"] > a:hover,
+[class$="actions"] > button:hover {
+  z-index: 2;
+}
