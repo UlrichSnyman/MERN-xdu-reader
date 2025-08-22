@@ -13,7 +13,8 @@
   color: white;
   box-shadow: var(--shadow-hover);
   position: relative;
-  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+  clip-path: none;
+  border-radius: 12px;
 }
 
 .hero-section::before {
@@ -24,7 +25,7 @@
   width: 100px;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1));
-  clip-path: polygon(0 0, 100% 0, 80% 100%, 0% 100%);
+  clip-path: none;
 }
 
 .hero-section h1 {
@@ -88,11 +89,13 @@
 .lore-card {
   background: var(--bg-secondary);
   box-shadow: var(--shadow);
+  border-radius: 12px;
   overflow: hidden;
   transition: var(--transition-smooth);
   border: 1px solid var(--border-color);
   position: relative;
-  clip-path: polygon(0 0, 95% 0, 100% 20px, 100% 100%, 5% 100%, 0 calc(100% - 20px));
+  /* override angled shape */
+  clip-path: none;
 }
 
 .lore-card:hover {
@@ -105,6 +108,7 @@
   overflow: hidden;
   background: var(--gradient-primary);
   position: relative;
+  border-radius: 12px 12px 0 0;
 }
 
 .lore-cover-placeholder {
@@ -116,6 +120,7 @@
   color: white;
   font-size: 2.5rem;
   font-weight: 300;
+  border-radius: 12px 12px 0 0;
 }
 
 .lore-content {
@@ -162,18 +167,17 @@
   flex-wrap: wrap;
 }
 
-.read-btn {
-  background: var(--gradient-primary);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: var(--transition-smooth);
-  text-align: center;
-  font-size: 0.85rem;
-  flex: 1;
-  min-width: 70px;
+.lore-card .read-btn,
+.lore-card .like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  min-height: 40px;
+  line-height: 1;
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 .read-btn:hover {
@@ -181,32 +185,16 @@
   transform: translateY(-1px);
 }
 
-.like-btn {
-  background: var(--gradient-primary);
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: var(--transition-smooth);
-  font-size: 0.85rem;
-  white-space: nowrap;
-  flex-shrink: 0;
-  font-weight: 500;
-  text-align: center;
-  min-width: 70px;
-}
-
-.like-btn:hover:not(:disabled) {
+.lore-card .like-btn:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
 }
 
-.like-btn.liked {
+.lore-card .like-btn.liked {
   background: var(--gradient-primary);
 }
 
-.like-btn:disabled {
+.lore-card .like-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

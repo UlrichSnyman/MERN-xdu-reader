@@ -96,32 +96,30 @@
   margin-bottom: 1rem;
 }
 
-.like-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0.4rem 0.8rem;
+/* Scope like button styles to ReaderView and match Browse */
+.reader-view .like-btn {
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
+  transition: var(--transition-smooth);
+  font-size: 0.85rem;
   font-weight: 500;
-  clip-path: polygon(15% 0, 100% 0, 85% 100%, 0% 100%);
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
-.like-btn:hover:not(:disabled) {
-  background-color: var(--accent-color);
-  color: white;
-  border-color: var(--accent-color);
-  box-shadow: var(--shadow-glow);
+.reader-view .like-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
-.like-btn.liked {
-  background-color: var(--success-color);
-  color: white;
-  border-color: var(--success-color);
+.reader-view .like-btn.liked {
+  background: var(--gradient-primary);
 }
 
-.like-btn:disabled {
+.reader-view .like-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
