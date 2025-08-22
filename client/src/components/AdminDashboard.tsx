@@ -28,12 +28,6 @@ const AdminDashboard: React.FC = () => {
     category: 'general'
   });
   
-  const [pageContent, setPageContent] = useState('');
-  const [selectedWorkId, setSelectedWorkId] = useState<string>('');
-  const [selectedPage, setSelectedPage] = useState<number>(1);
-  const [workPages, setWorkPages] = useState<Page[]>([]);
-  const [isEditingPage, setIsEditingPage] = useState(false);
-
   const [uploadForm, setUploadForm] = useState({
     title: '',
     synopsis: '',
@@ -188,67 +182,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleWorkSelect = async (workId: string) => {
-    setSelectedWorkId(workId);
-    if (workId) {
-      try {
-        const response = await pagesAPI.getForWork(workId);
-        setWorkPages(response.data);
-        if (response.data.length > 0) {
-          setSelectedPage(1);
-          setPageContent(response.data[0].content);
-        } else {
-          setSelectedPage(1);
-          setPageContent('');
-        }
-      } catch (error) {
-        console.error('Error fetching pages for work:', error);
-        setWorkPages([]);
-        setPageContent('');
-      }
-    } else {
-      setWorkPages([]);
-      setPageContent('');
-    }
-  };
-
-  const handlePageChange = (pageNumber: number) => {
-    setSelectedPage(pageNumber);
-    const page = workPages.find(p => p.pageNumber === pageNumber);
-    setPageContent(page ? page.content : '');
-    setIsEditingPage(false);
-  };
-
-  const handleSavePage = async () => {
-    if (!selectedWorkId) return;
-
-    const page = workPages.find(p => p.pageNumber === selectedPage);
-    
-    setSubmitting(true);
-    try {
-      if (page) {
-        // Update existing page
-        await pagesAPI.update(page._id, { content: pageContent });
-      } else {
-        // Create new page
-        await pagesAPI.create({
-          workId: selectedWorkId,
-          pageNumber: selectedPage,
-          title: `Page ${selectedPage}`,
-          content: pageContent,
-        });
-      }
-      alert(`Page ${selectedPage} saved successfully!`);
-      handleWorkSelect(selectedWorkId); // Refresh pages
-    } catch (error) {
-      console.error('Error saving page:', error);
-      alert('Failed to save page');
-    } finally {
-      setSubmitting(false);
-      setIsEditingPage(false);
-    }
-  };
-  
   const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || !uploadForm.title.trim()) {
@@ -537,7 +470,7 @@ const AdminDashboard: React.FC = () => {
         <div className="dashboard-create">
           <div className="section-header">
             <h3>Create & Edit Content</h3>
-            <p>Manually create works, lore, and edit page content.</p>
+            <p>Manually create works and lore entries. Page editing moved to work pages and reader view.</p>
           </div>
 
           <div className="create-forms">
@@ -638,64 +571,6 @@ const AdminDashboard: React.FC = () => {
                   {submitting ? 'Creating...' : 'Create Lore Entry'}
                 </button>
               </form>
-            </div>
-
-            <div className="form-section">
-              <h4>Edit Work Content</h4>
-              <div className="form-group">
-                <label htmlFor="page-work">Select Work *</label>
-                <select
-                  id="page-work"
-                  value={selectedWorkId}
-                  onChange={(e) => handleWorkSelect(e.target.value)}
-                  required
-                  disabled={submitting}
-                >
-                  <option value="">Choose a work...</option>
-                  {works.map(work => (
-                    <option key={work._id} value={work._id}>
-                      {work.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {selectedWorkId && (
-                <div>
-                  <div className="page-navigation">
-                    {/* Simple page navigation */}
-                    <label>Page:</label>
-                    <input 
-                      type="number"
-                      min="1"
-                      value={selectedPage}
-                      onChange={(e) => handlePageChange(parseInt(e.target.value, 10))}
-                      disabled={submitting}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="page-content">Content</label>
-                    <RichTextEditor
-                      value={pageContent}
-                      onChange={(content) => setPageContent(content)}
-                      placeholder="Write your page content here..."
-                      rows={15}
-                      disabled={submitting || !isEditingPage}
-                    />
-                  </div>
-                  
-                  {!isEditingPage ? (
-                    <button onClick={() => setIsEditingPage(true)} disabled={submitting}>
-                      Edit Page {selectedPage}
-                    </button>
-                  ) : (
-                    <button onClick={handleSavePage} disabled={submitting}>
-                      {submitting ? 'Saving...' : `Save Page ${selectedPage}`}
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>

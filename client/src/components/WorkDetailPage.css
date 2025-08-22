@@ -106,9 +106,36 @@
 
 .work-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0; /* ensure no visual gaps */
+  align-items: stretch;
   margin-bottom: 0.75rem;
   /* Changed order: like and read first buttons moved to the left */
+}
+
+/* Remove any default margins on direct children */
+.page-actions > * { margin: 0; }
+
+/* Force the Read anchor to render as a button */
+.page-actions .read-page-btn,
+.page-actions .read-page-btn:link,
+.page-actions .read-page-btn:visited {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accent-color) !important;
+  color: #fff !important;
+  border: 1px solid var(--accent-color) !important;
+  text-decoration: none !important;
+  padding: 0.5rem 1rem;
+  height: var(--btn-height);
+  line-height: normal;
+}
+
+/* Keep edit/delete buttons same height and touching */
+.page-actions .edit-page-btn,
+.page-actions .delete-page-btn {
+  height: var(--btn-height);
+  line-height: normal;
 }
 
 .like-btn {
@@ -243,57 +270,46 @@
   color: var(--text-secondary);
 }
 
-.read-page-btn {
-  background-color: var(--accent-color);
-  color: white;
-  padding: 0.5rem 1rem;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+.page-actions {
+  display: flex;
+  gap: 0; /* ensure no visual gaps */
+  align-items: stretch;
 }
 
-.read-page-btn:hover {
-  background-color: var(--accent-hover);
+/* Base button block style */
+.read-page-btn,
+.edit-page-btn,
+.delete-page-btn {
+  display: inline-block;
+  border-radius: 0;
+}
+
+/* Make siblings touch by removing border radii on the touching sides */
+.page-actions .read-page-btn + .edit-page-btn,
+.page-actions .edit-page-btn + .delete-page-btn,
+.page-actions .read-page-btn + .delete-page-btn {
+  margin-left: 0; /* ensure no spacing */
+}
+
+/* Delete button look */
+.delete-page-btn {
+  background: var(--danger-color);
+  color: #fff;
+  border: 1px solid var(--danger-color);
+  padding: 0.5rem 0.9rem;
+  white-space: nowrap;
+}
+
+.delete-page-btn:hover {
+  background: var(--danger-hover);
   box-shadow: var(--shadow-glow);
 }
 
-.no-pages {
-  text-align: center;
-  color: var(--text-secondary);
-  font-style: italic;
-  padding: 2rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-}
-
-
-
-.loading-container,
-.error-container {
-  text-align: center;
-  padding: 3rem 1rem;
-}
-
-.loading-spinner {
-  border: 3px solid var(--bg-tertiary);
-  border-top: 3px solid var(--accent-color);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-container h2 {
-  color: var(--error-color);
-  margin-bottom: 1rem;
+/* When only one button exists, keep it looking like a normal block */
+.page-actions:only-child,
+.page-actions > a:only-child,
+.page-actions > button:only-child {
+  clip-path: none;
 }
 
 @media (max-width: 768px) {

@@ -30,6 +30,17 @@
   position: relative;
 }
 
+.reader-nav-actions {
+  display: inline-flex;
+  gap: 0;
+  align-items: center;
+}
+
+.reader-nav-actions .edit-page-btn + .settings-btn,
+.reader-nav-actions .settings-btn + .edit-page-btn {
+  margin-left: 0;
+}
+
 /* Removed decorative line that was interfering with layout */
 
 .back-link {
@@ -77,6 +88,22 @@
 
 .settings-btn:hover {
   background-color: var(--accent-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.edit-page-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: var(--transition-smooth);
+}
+
+.edit-page-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
   box-shadow: var(--shadow-glow);
 }
 
@@ -287,6 +314,66 @@
 .close-settings:hover {
   background-color: var(--accent-hover);
   box-shadow: var(--shadow-glow);
+}
+
+/* Modal (shared style for reader view) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  clip-path: polygon(0 0, 95% 0, 100% 15px, 100% 100%, 5% 100%, 0 calc(100% - 15px));
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-actions .cancel-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.9rem;
 }
 
 /* Loading and Error States */

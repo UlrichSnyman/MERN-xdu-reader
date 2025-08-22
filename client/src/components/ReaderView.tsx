@@ -4,6 +4,7 @@ import { pagesAPI, worksAPI } from '../services/api';
 import { Page, ReaderSettings } from '../types';
 import { useAuth } from '../context/AuthContext';
 import CommentSection from './CommentSection';
+import RichTextEditor from './RichTextEditor';
 import './ReaderView.css';
 
 const ReaderView: React.FC = () => {
@@ -20,12 +21,16 @@ const ReaderView: React.FC = () => {
     speechRate: 1.0,
     selectedVoice: '',
   });
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Admin edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState('');
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -49,7 +54,7 @@ const ReaderView: React.FC = () => {
     const trackProgress = async () => {
       if (page && isAuthenticated && page.work) {
         try {
-          const workId = typeof page.work === 'string' ? page.work : page.work._id;
+          const workId = typeof page.work === 'string' ? page.work : (page.work as any)._id;
           await worksAPI.updateProgress(workId, pageId!);
         } catch (err) {
           console.error('Failed to track reading progress:', err);
@@ -154,6 +159,34 @@ const ReaderView: React.FC = () => {
     }
   };
 
+  const refreshPage = async () => {
+    if (!pageId) return;
+    try {
+      const response = await pagesAPI.getById(pageId);
+      setPage(response.data);
+    } catch (err) {
+      console.error('Failed to refresh page', err);
+    }
+  };
+
+  const openEditModal = () => {
+    if (!page) return;
+    setEditContent(page.content);
+    setShowEditModal(true);
+  };
+
+  const saveEdit = async () => {
+    if (!page) return;
+    try {
+      await pagesAPI.update(page._id, { content: editContent });
+      setShowEditModal(false);
+      await refreshPage();
+    } catch (err: any) {
+      console.error('Failed to save page content:', err);
+      alert(err.response?.data?.error || 'Failed to save');
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -179,7 +212,7 @@ const ReaderView: React.FC = () => {
                 settings.fontFamily === 'dyslexic' ? 'OpenDyslexic, sans-serif' :
                 settings.fontFamily === 'roboto' ? 'Roboto, sans-serif' :
                 settings.fontFamily === 'lora' ? 'Lora, serif' : 'inherit'
-  };
+  } as React.CSSProperties;
 
   return (
     <div className="reader-view">
@@ -289,15 +322,20 @@ const ReaderView: React.FC = () => {
       {/* Main Content */}
       <div className="reader-header">
         <div className="reader-nav">
-          <Link to={`/work/${typeof page.work === 'string' ? page.work : page.work._id}`} className="back-link">
+          <Link to={`/work/${typeof page.work === 'string' ? page.work : (page.work as any)._id}`} className="back-link">
             ← Back to Work
           </Link>
-          <button 
-            className="settings-btn"
-            onClick={() => setShowSettings(true)}
-          >
-            Settings
-          </button>
+          <div className="reader-nav-actions">
+            {user?.role === 'admin' && (
+              <button className="edit-page-btn" onClick={openEditModal}>Edit</button>
+            )}
+            <button 
+              className="settings-btn"
+              onClick={() => setShowSettings(true)}
+            >
+              Settings
+            </button>
+          </div>
         </div>
         
         <div className="page-info">
@@ -347,6 +385,29 @@ const ReaderView: React.FC = () => {
         contentId={page._id}
         contentType="Page"
       />
+
+      {/* Admin Edit Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Page Content</h3>
+              <button className="close-btn" onClick={() => setShowEditModal(false)}>&times;</button>
+            </div>
+            <div className="form-group" style={{ padding: '1rem' }}>
+              <RichTextEditor
+                value={editContent}
+                onChange={setEditContent}
+                rows={18}
+              />
+            </div>
+            <div className="modal-actions" style={{ padding: '0 1rem 1rem', display: 'flex', justifyContent: 'flex-end', gap: '.5rem' }}>
+              <button className="cancel-btn" onClick={() => setShowEditModal(false)}>Cancel</button>
+              <button onClick={saveEdit}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

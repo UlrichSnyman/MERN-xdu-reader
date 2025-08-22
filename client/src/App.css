@@ -189,6 +189,11 @@ button.btn-primary:hover {
 }
 
 /* Global action button glass effect and interlocking shapes */
+[class$="actions"] {
+  display: flex;
+  gap: 0; /* ensure no space between grouped buttons */
+}
+
 [class$="actions"] > a,
 [class$="actions"] > button {
   position: relative;
