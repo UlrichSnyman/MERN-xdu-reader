@@ -232,16 +232,7 @@
   position: relative;
 }
 
-.settings-panel h3::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 2px;
-  background: var(--accent-color);
-}
+/* Removed decorative line to prevent interference with content */
 
 .setting-group {
   margin-bottom: 1.5rem;
