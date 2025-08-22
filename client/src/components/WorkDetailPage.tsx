@@ -69,7 +69,7 @@ const WorkDetailPage: React.FC = () => {
       <div className="error-container">
         <h2>Error</h2>
         <p>{error || 'Work not found'}</p>
-        <Link to="/" className="back-link">← Back to Library</Link>
+        <Link to="/" className="back-link">← Back to Home</Link>
       </div>
     );
   }
@@ -77,7 +77,7 @@ const WorkDetailPage: React.FC = () => {
   return (
     <div className="work-detail-page">
       <div className="work-header">
-        <Link to="/" className="back-link">← Back to Library</Link>
+        <Link to="/" className="back-link">← Back to Home</Link>
         
         <div className="work-info">
           {work.coverImage && (
@@ -114,6 +114,14 @@ const WorkDetailPage: React.FC = () => {
                   className="read-btn read-first"
                 >
                   Start Reading
+                </Link>
+              )}
+              {(work as any).userProgress && (work as any).userProgress.lastPageId && isAuthenticated && (
+                <Link 
+                  to={`/read/${(work as any).userProgress.lastPageId}`} 
+                  className="read-btn resume-reading"
+                >
+                  Resume Reading
                 </Link>
               )}
             </div>

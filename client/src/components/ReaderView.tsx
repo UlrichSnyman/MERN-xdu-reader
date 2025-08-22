@@ -168,7 +168,7 @@ const ReaderView: React.FC = () => {
       <div className="error-container">
         <h2>Error</h2>
         <p>{error || 'Page not found'}</p>
-        <Link to="/" className="back-link">← Back to Library</Link>
+        <Link to="/" className="back-link">← Back to Home</Link>
       </div>
     );
   }
