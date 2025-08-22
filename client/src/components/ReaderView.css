@@ -281,10 +281,8 @@
   background: var(--accent-color);
   cursor: pointer;
   box-shadow: var(--shadow);
-  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-}
-  box-shadow: var(--shadow);
   transition: var(--transition-smooth);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
 }
 
 .setting-group input[type="range"]::-webkit-slider-thumb:hover {
