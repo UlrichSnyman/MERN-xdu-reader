@@ -6,8 +6,6 @@ import Navbar from './components/Navbar';
 import HomePage from './components/HomePage';
 import WorkDetailPage from './components/WorkDetailPage';
 import ReaderView from './components/ReaderView';
-import LoreLibrary from './components/LoreLibrary';
-import LoreDetailPage from './components/LoreDetailPage';
 import SuggestionsPage from './components/SuggestionsPage';
 import LoginForm from './components/LoginForm';
 import AdminDashboard from './components/AdminDashboard';
@@ -26,8 +24,6 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/work/:id" element={<WorkDetailPage />} />
                 <Route path="/read/:pageId" element={<ReaderView />} />
-                <Route path="/lore" element={<LoreLibrary />} />
-                <Route path="/lore/:id" element={<LoreDetailPage />} />
                 <Route path="/suggestions" element={<SuggestionsPage />} />
                 <Route path="/login" element={<LoginForm />} />
                 <Route 
