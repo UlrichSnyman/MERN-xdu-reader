@@ -12,7 +12,7 @@ const LoreLibrary: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const { isAuthenticated } = useAuth();
 
-  const categories = ['worldbuilding', 'characters', 'history', 'locations', 'magic', 'general'];
+  const categories = ['worldbuilding', 'characters', 'history', 'locations', 'general'];
 
   useEffect(() => {
     const fetchLore = async () => {
@@ -80,13 +80,13 @@ const LoreLibrary: React.FC = () => {
   }
 
   return (
-    <div className="lore-library">
-      <div className="lore-header">
+    <div className="homepage">
+      <div className="hero-section">
         <h1>Lore Library</h1>
         <p>Discover the rich world and characters behind the stories</p>
       </div>
 
-      <div className="lore-filters">
+      <div className="works-section">
         <div className="category-filters">
           <button 
             className={selectedCategory === '' ? 'active' : ''} 
@@ -104,62 +104,70 @@ const LoreLibrary: React.FC = () => {
             </button>
           ))}
         </div>
-      </div>
 
-      {loreEntries.length > 0 ? (
-        <div className="lore-grid">
-          {loreEntries.map((lore) => (
-            <div key={lore._id} className="lore-card">
-              <div className="lore-header-card">
-                <span className="lore-category">{lore.category}</span>
-                <span className="lore-date">
-                  {new Date(lore.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="lore-content">
-                <h3>{lore.title}</h3>
-                <p className="lore-preview">
-                  {lore.content && lore.content.length > 150
-                    ? `${lore.content.substring(0, 150)}...`
-                    : lore.content}
-                </p>
-              </div>
-              <div className="lore-actions">
-                <Link to={`/lore/${lore._id}`} className="read-btn">
-                  Read More
-                </Link>
-                <button 
-                  onClick={() => handleLikeToggle(lore._id)}
-                  className={`like-btn ${(lore as any).hasLiked ? 'liked' : ''}`}
-                  disabled={!isAuthenticated}
-                >
-                  {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
-                </button>
-              </div>
-              {( (lore as any).likedByUsers && (lore as any).likedByUsers.length > 0 ) && (
-                <div className="liked-by-box">
-                  <span className="liked-by-title">Liked by:</span>
-                  <div className="liked-by-list">
-                    {(lore as any).likedByUsers.map((u: any) => (
-                      <span key={u._id} className="liked-by-chip">{u.username}</span>
-                    ))}
+        {loreEntries.length > 0 ? (
+          <div className="works-grid">
+            {loreEntries.map((lore) => (
+              <div key={lore._id} className="work-card">
+                <div className="work-cover">
+                  <div className="work-cover-placeholder">
+                    {lore.title.charAt(0).toUpperCase()}
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="no-lore">
-          <h3>No lore entries found</h3>
-          <p>
-            {selectedCategory 
-              ? `No lore entries in the "${selectedCategory}" category yet.`
-              : 'No lore entries available yet.'
-            }
-          </p>
-        </div>
-      )}
+                <div className="work-content">
+                  <h3>{lore.title}</h3>
+                  <span className="work-category">{lore.category}</span>
+                  <p className="work-synopsis">
+                    {lore.content && lore.content.length > 150
+                      ? `${lore.content.substring(0, 150)}...`
+                      : lore.content}
+                  </p>
+                  <div className="work-actions">
+                    <Link to={`/lore/${lore._id}`} className="read-btn">
+                      Read More
+                    </Link>
+                    <div 
+                      onClick={() => handleLikeToggle(lore._id)}
+                      className={`read-btn ${(lore as any).hasLiked ? 'read-first' : ''}`}
+                      style={{ 
+                        cursor: isAuthenticated ? 'pointer' : 'not-allowed',
+                        opacity: isAuthenticated ? 1 : 0.6
+                      }}
+                    >
+                      {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
+                    </div>
+                  </div>
+                  {( (lore as any).likedByUsers && (lore as any).likedByUsers.length > 0 ) && (
+                    <div className="liked-by-box">
+                      <span className="liked-by-title">Liked by:</span>
+                      <div className="liked-by-list">
+                        {(lore as any).likedByUsers.map((u: any) => (
+                          <span key={u._id} className="liked-by-chip">{u.username}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="work-meta">
+                    <small>
+                      Published: {new Date(lore.createdAt).toLocaleDateString()}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="no-lore">
+            <h3>No lore entries found</h3>
+            <p>
+              {selectedCategory 
+                ? `No lore entries in the "${selectedCategory}" category yet.`
+                : 'No lore entries available yet.'
+              }
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
