@@ -35,6 +35,17 @@
   border-color: var(--text-secondary);
 }
 
+.format-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--bg-secondary);
+}
+
+.format-btn:disabled:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
 .format-btn:active {
   background: #dee2e6;
   transform: translateY(1px);
@@ -60,6 +71,15 @@
 
 .mode-switch button:hover {
   background: var(--bg-tertiary);
+}
+
+.mode-switch button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mode-switch button:disabled:hover {
+  background: var(--bg-secondary);
 }
 
 .mode-switch button.active {
@@ -90,6 +110,12 @@
 
 .visual-editor:focus {
   background: var(--bg-tertiary);
+}
+
+.visual-editor:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--bg-secondary);
 }
 
 .editor-help {
