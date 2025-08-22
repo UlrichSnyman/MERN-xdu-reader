@@ -86,10 +86,6 @@
   font-weight: 700;
   line-height: 1.2;
 }
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
 
 .work-category {
   display: inline-block;
