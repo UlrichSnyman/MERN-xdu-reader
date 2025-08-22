@@ -108,9 +108,13 @@ const HomePage: React.FC = () => {
                     <p className="work-synopsis">{work.synopsis}</p>
                   )}
                   <div className="work-actions">
-                    <Link to={`/work/${work._id}`} className="read-btn">
-                      Browse
-                    </Link>
+                    <button 
+                      onClick={() => handleLikeToggle(work._id)}
+                      className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
+                      disabled={!isAuthenticated}
+                    >
+                      {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
+                    </button>
                     {Array.isArray(work.pages) && work.pages.length > 0 && (
                       <Link 
                         to={`/read/${typeof work.pages[0] === 'string' ? work.pages[0] : work.pages[0]._id}`} 
@@ -119,13 +123,9 @@ const HomePage: React.FC = () => {
                         Read First
                       </Link>
                     )}
-                    <button 
-                      onClick={() => handleLikeToggle(work._id)}
-                      className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
-                      disabled={!isAuthenticated}
-                    >
-                      {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
-                    </button>
+                    <Link to={`/work/${work._id}`} className="read-btn">
+                      Browse
+                    </Link>
                   </div>
                   {( (work as any).likedByUsers && (work as any).likedByUsers.length > 0 ) && (
                     <div className="liked-by-box">

@@ -76,9 +76,9 @@ const WorkDetailPage: React.FC = () => {
 
   return (
     <div className="work-detail-page">
+      <Link to="/" className="back-link">← Back to Library</Link>
+      
       <div className="work-header">
-        <Link to="/" className="back-link">← Back to Library</Link>
-        
         <div className="work-info">
           {work.coverImage && (
             <div className="work-cover-large">

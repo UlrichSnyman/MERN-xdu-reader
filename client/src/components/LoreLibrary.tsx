@@ -125,9 +125,6 @@ const LoreLibrary: React.FC = () => {
                 </p>
               </div>
               <div className="lore-actions">
-                <Link to={`/lore/${lore._id}`} className="read-btn">
-                  Read More
-                </Link>
                 <button 
                   onClick={() => handleLikeToggle(lore._id)}
                   className={`like-btn ${(lore as any).hasLiked ? 'liked' : ''}`}
@@ -135,6 +132,9 @@ const LoreLibrary: React.FC = () => {
                 >
                   {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
                 </button>
+                <Link to={`/lore/${lore._id}`} className="read-btn">
+                  Read More
+                </Link>
               </div>
               {( (lore as any).likedByUsers && (lore as any).likedByUsers.length > 0 ) && (
                 <div className="liked-by-box">

@@ -19,7 +19,7 @@ const AdminDashboard: React.FC = () => {
     title: '',
     synopsis: '',
     coverImage: '',
-    category: 'library' as 'library' | 'lore'
+    category: 'general' as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'
   });
   
   const [loreForm, setLoreForm] = useState({
@@ -46,7 +46,7 @@ const AdminDashboard: React.FC = () => {
     title: '',
     synopsis: '',
     coverImage: '',
-    category: 'library' as 'library' | 'lore'
+    category: 'general' as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -131,7 +131,7 @@ const AdminDashboard: React.FC = () => {
       const response = await worksAPI.update(editingWork._id, editForm);
       setWorks(works.map(w => w._id === editingWork._id ? response.data : w));
       setEditingWork(null);
-      setEditForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
+      setEditForm({ title: '', synopsis: '', coverImage: '', category: 'general' });
       alert('Work updated successfully!');
     } catch (error) {
       console.error('Error updating work:', error);
@@ -143,7 +143,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditingWork(null);
-    setEditForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
+    setEditForm({ title: '', synopsis: '', coverImage: '', category: 'general' });
   };
 
   const handleCreateWork = async (e: React.FormEvent) => {
@@ -157,7 +157,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const response = await worksAPI.create(workForm);
       setWorks([response.data, ...works]);
-      setWorkForm({ title: '', synopsis: '', coverImage: '', category: 'library' });
+      setWorkForm({ title: '', synopsis: '', coverImage: '', category: 'general' });
       alert('Work created successfully!');
     } catch (error) {
       console.error('Error creating work:', error);
@@ -472,11 +472,15 @@ const AdminDashboard: React.FC = () => {
                 <select
                   id="edit-category"
                   value={editForm.category}
-                  onChange={(e) => setEditForm({...editForm, category: e.target.value as 'library' | 'lore'})}
+                  onChange={(e) => setEditForm({...editForm, category: e.target.value as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'})}
                   disabled={submitting}
                 >
-                  <option value="library">Library</option>
-                  <option value="lore">Lore</option>
+                  <option value="general">General</option>
+                  <option value="worldbuilding">Worldbuilding</option>
+                  <option value="characters">Characters</option>
+                  <option value="history">History</option>
+                  <option value="locations">Locations</option>
+                  <option value="magic">Magic</option>
                 </select>
               </div>
               
@@ -579,11 +583,15 @@ const AdminDashboard: React.FC = () => {
                   <select
                     id="work-category"
                     value={workForm.category}
-                    onChange={(e) => setWorkForm({...workForm, category: e.target.value as 'library' | 'lore'})}
+                    onChange={(e) => setWorkForm({...workForm, category: e.target.value as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'})}
                     disabled={submitting}
                   >
-                    <option value="library">Library</option>
-                    <option value="lore">Lore</option>
+                    <option value="general">General</option>
+                    <option value="worldbuilding">Worldbuilding</option>
+                    <option value="characters">Characters</option>
+                    <option value="history">History</option>
+                    <option value="locations">Locations</option>
+                    <option value="magic">Magic</option>
                   </select>
                 </div>
                 
@@ -644,7 +652,7 @@ const AdminDashboard: React.FC = () => {
                   disabled={submitting}
                 >
                   <option value="">Choose a work...</option>
-                  {works.filter(w => w.category === 'library').map(work => (
+                  {works.map(work => (
                     <option key={work._id} value={work._id}>
                       {work.title}
                     </option>
@@ -751,7 +759,7 @@ const AdminDashboard: React.FC = () => {
                 onChange={(e) => setUploadForm({...uploadForm, destination: e.target.value as 'library' | 'lore'})}
                 disabled={submitting}
               >
-                <option value="library">Library (Create work with pages)</option>
+                <option value="library">Works (Create work with pages)</option>
                 <option value="lore">Lore (Create single lore entry)</option>
               </select>
             </div>
