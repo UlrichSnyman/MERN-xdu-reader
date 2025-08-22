@@ -5,20 +5,28 @@
   position: relative;
 }
 
-/* Removed problematic decorative line that went through content */
+.work-detail-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 120px;
+  background: var(--gradient-accent);
+  transform: translateX(-50%);
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+}
 
 .back-link {
   color: var(--accent-color);
   text-decoration: none;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   display: inline-block;
   font-weight: 500;
   transition: color 0.3s ease;
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.8rem;
   border: 1px solid transparent;
   position: relative;
-  border-radius: 8px;
-  font-size: 1.1rem;
 }
 
 .back-link::before {
@@ -122,7 +130,7 @@
   white-space: nowrap;
   flex-shrink: 0;
   font-weight: 500;
-  border-radius: 8px;
+  clip-path: polygon(15% 0, 100% 0, 85% 100%, 0% 100%);
 }
 
 .like-btn:hover:not(:disabled) {
@@ -151,27 +159,11 @@
   font-weight: 500;
   transition: background-color 0.3s ease;
   white-space: nowrap;
-  border-radius: 8px;
+  clip-path: polygon(0 0, 85% 0, 100% 100%, 15% 100%);
 }
 
 .read-btn.read-first:hover {
   background-color: var(--success-hover);
-  box-shadow: var(--shadow-glow);
-}
-
-.read-btn.resume-reading {
-  background-color: var(--accent-color);
-  color: white;
-  padding: 0.5rem 1.2rem;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-  border-radius: 8px;
-}
-
-.read-btn.resume-reading:hover {
-  background-color: var(--accent-hover);
   box-shadow: var(--shadow-glow);
 }
 
@@ -256,7 +248,7 @@
   font-weight: 500;
   transition: background-color 0.3s ease;
   white-space: nowrap;
-  border-radius: 8px;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
 }
 
 .read-page-btn:hover {

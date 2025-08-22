@@ -9,7 +9,7 @@ export interface Work {
   title: string;
   synopsis?: string;
   coverImage?: string;
-  category: string;
+  category: 'library' | 'lore';
   likes: number;
   pages: Page[] | string[];
   createdAt: string;

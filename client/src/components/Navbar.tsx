@@ -18,12 +18,15 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="nav-container">
         <Link to="/" className="nav-logo">
-          XDU Collection
+          Literary Works
         </Link>
         
         <div className="nav-menu">
           <Link to="/" className="nav-link">
-            Home
+            Library
+          </Link>
+          <Link to="/lore" className="nav-link">
+            Lore
           </Link>
           <Link to="/suggestions" className="nav-link">
             Suggestions

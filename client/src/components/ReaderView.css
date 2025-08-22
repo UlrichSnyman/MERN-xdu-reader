@@ -7,7 +7,16 @@
   position: relative;
 }
 
-/* Removed problematic decorative line that could interfere with content */
+.reader-view::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -20px;
+  width: 4px;
+  height: 200px;
+  background: var(--gradient-accent);
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+}
 
 .reader-header {
   margin-bottom: 1.5rem;
@@ -21,18 +30,24 @@
   position: relative;
 }
 
-/* Removed problematic decorative line that went through navigation */
+.reader-nav::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 0;
+  width: 60%;
+  height: 1px;
+  background: var(--border-color);
+}
 
 .back-link {
   color: var(--accent-color);
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition-smooth);
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.8rem;
   position: relative;
   border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: 1.1rem;
 }
 
 .back-link::before {
@@ -65,7 +80,7 @@
   font-size: 0.9rem;
   transition: var(--transition-smooth);
   font-weight: 500;
-  border-radius: 8px;
+  clip-path: polygon(0 0, 85% 0, 100% 100%, 15% 100%);
 }
 
 .settings-btn:hover {

@@ -70,8 +70,8 @@ const LoreDetailPage: React.FC = () => {
     return (
       <div className="error-container">
         <h2>Error</h2>
-        <p>{error || 'Content not found'}</p>
-        <Link to="/" className="back-link">← Back to Home</Link>
+        <p>{error || 'Lore entry not found'}</p>
+        <Link to="/lore" className="back-link">← Back to Lore Library</Link>
       </div>
     );
   }
@@ -79,7 +79,7 @@ const LoreDetailPage: React.FC = () => {
   return (
     <div className="lore-detail-page">
       <div className="lore-header">
-        <Link to="/" className="back-link">← Back to Home</Link>
+        <Link to="/lore" className="back-link">← Back to Lore Library</Link>
         
         <div className="lore-info">
           <div className="lore-meta">

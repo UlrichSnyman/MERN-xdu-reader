@@ -63,7 +63,7 @@ const HomePage: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading the great collection...</p>
+        <p>Loading literary works...</p>
       </div>
     );
   }
@@ -80,12 +80,12 @@ const HomePage: React.FC = () => {
   return (
     <div className="homepage">
       <div className="hero-section">
-        <h1>Welcome to the Collection</h1>
+        <h1>Welcome to the Literary Collection</h1>
         <p>Discover captivating stories and immerse yourself in rich narratives</p>
       </div>
 
       <div className="works-section">
-        <h2>Books</h2>
+        <h2>Literary Works</h2>
         {works.length === 0 ? (
           <p className="no-works">No works available yet. Check back soon!</p>
         ) : (
@@ -119,16 +119,13 @@ const HomePage: React.FC = () => {
                         Read First
                       </Link>
                     )}
-                    <div 
+                    <button 
                       onClick={() => handleLikeToggle(work._id)}
-                      className={`read-btn ${(work as any).hasLiked ? 'read-first' : ''}`}
-                      style={{ 
-                        cursor: isAuthenticated ? 'pointer' : 'not-allowed',
-                        opacity: isAuthenticated ? 1 : 0.6
-                      }}
+                      className={`like-btn ${(work as any).hasLiked ? 'liked' : ''}`}
+                      disabled={!isAuthenticated}
                     >
                       {(work as any).hasLiked ? 'Liked' : 'Like'} ({work.likes})
-                    </div>
+                    </button>
                   </div>
                   {( (work as any).likedByUsers && (work as any).likedByUsers.length > 0 ) && (
                     <div className="liked-by-box">

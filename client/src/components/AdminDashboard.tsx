@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI, loreAPI } from '../services/api';
 import { Work, Suggestion, Page } from '../types';
@@ -7,6 +8,7 @@ import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [works, setWorks] = useState<Work[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ const AdminDashboard: React.FC = () => {
     title: '',
     synopsis: '',
     coverImage: '',
-    category: 'books'
+    category: 'library' as 'library' | 'lore'
   });
   
   const [loreForm, setLoreForm] = useState({
@@ -35,7 +37,7 @@ const AdminDashboard: React.FC = () => {
   const [uploadForm, setUploadForm] = useState({
     title: '',
     synopsis: '',
-    destination: 'books',
+    destination: 'library' as 'library' | 'lore',
     category: 'general'
   });
 
@@ -44,7 +46,7 @@ const AdminDashboard: React.FC = () => {
     title: '',
     synopsis: '',
     coverImage: '',
-    category: 'books'
+    category: 'library' as 'library' | 'lore'
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -270,12 +272,20 @@ const AdminDashboard: React.FC = () => {
       
       alert(`PDF processed successfully! Created ${resultType}: ${resultData.title}`);
       
-      setUploadForm({ title: '', synopsis: '', destination: 'books', category: 'general' });
+      setUploadForm({ title: '', synopsis: '', destination: 'library', category: 'general' });
       setSelectedFile(null);
       
-      // Refresh works after upload
-      const worksResponse = await worksAPI.getAll();
-      setWorks(worksResponse.data);
+      // Only refresh works if we uploaded to library, not lore
+      if (uploadForm.destination === 'library') {
+        const worksResponse = await worksAPI.getAll();
+        setWorks(worksResponse.data);
+      } else {
+        // For lore uploads, navigate to lore library
+        console.log('Lore entry created successfully:', resultData);
+        setTimeout(() => {
+          navigate('/lore');
+        }, 1500); // Give user time to see success message
+      }
     } catch (error) {
       console.error('Error uploading PDF:', error);
       alert('Failed to upload PDF');
@@ -462,13 +472,11 @@ const AdminDashboard: React.FC = () => {
                 <select
                   id="edit-category"
                   value={editForm.category}
-                  onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                  onChange={(e) => setEditForm({...editForm, category: e.target.value as 'library' | 'lore'})}
                   disabled={submitting}
                 >
-                  <option value="books">Books</option>
-                  <option value="novels">Novels</option>
-                  <option value="poetry">Poetry</option>
-                  <option value="other">Other</option>
+                  <option value="library">Library</option>
+                  <option value="lore">Lore</option>
                 </select>
               </div>
               
@@ -571,13 +579,11 @@ const AdminDashboard: React.FC = () => {
                   <select
                     id="work-category"
                     value={workForm.category}
-                    onChange={(e) => setWorkForm({...workForm, category: e.target.value})}
+                    onChange={(e) => setWorkForm({...workForm, category: e.target.value as 'library' | 'lore'})}
                     disabled={submitting}
                   >
-                    <option value="books">Books</option>
-                    <option value="novels">Novels</option>
-                    <option value="poetry">Poetry</option>
-                    <option value="other">Other</option>
+                    <option value="library">Library</option>
+                    <option value="lore">Lore</option>
                   </select>
                 </div>
                 
@@ -742,10 +748,11 @@ const AdminDashboard: React.FC = () => {
               <select
                 id="upload-destination"
                 value={uploadForm.destination}
-                onChange={(e) => setUploadForm({...uploadForm, destination: e.target.value})}
+                onChange={(e) => setUploadForm({...uploadForm, destination: e.target.value as 'library' | 'lore'})}
                 disabled={submitting}
               >
-                <option value="books">Books (Create work with pages)</option>
+                <option value="library">Library (Create work with pages)</option>
+                <option value="lore">Lore (Create single lore entry)</option>
               </select>
             </div>
 
