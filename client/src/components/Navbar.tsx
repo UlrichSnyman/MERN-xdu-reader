@@ -22,12 +22,6 @@ const Navbar: React.FC = () => {
         </Link>
         
         <div className="nav-menu">
-          <Link to="/" className="nav-link">
-            Library
-          </Link>
-          <Link to="/lore" className="nav-link">
-            Lore
-          </Link>
           <Link to="/suggestions" className="nav-link">
             Suggestions
           </Link>
