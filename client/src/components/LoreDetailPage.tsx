@@ -78,9 +78,9 @@ const LoreDetailPage: React.FC = () => {
 
   return (
     <div className="lore-detail-page">
+      <Link to="/lore" className="back-link">← Back to Lore Library</Link>
+      
       <div className="lore-header">
-        <Link to="/lore" className="back-link">← Back to Lore Library</Link>
-        
         <div className="lore-info">
           <div className="lore-meta">
             <span className="lore-category">{lore.category}</span>

@@ -8,15 +8,7 @@
   position: relative;
 }
 
-.navbar::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 40%;
-  height: 2px;
-  background: var(--gradient-accent);
-}
+/* Removed decorative line that was going through content */
 
 .nav-container {
   max-width: 1200px;

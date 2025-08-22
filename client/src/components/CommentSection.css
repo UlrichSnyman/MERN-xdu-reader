@@ -28,15 +28,7 @@
   position: relative;
 }
 
-.comment-section h3::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 40%;
-  height: 2px;
-  background: var(--accent-color);
-}
+/* Removed decorative line to prevent interference with titles */
 
 .comment-form {
   margin-bottom: 1.5rem;
