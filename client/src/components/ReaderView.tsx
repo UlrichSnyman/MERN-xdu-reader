@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { pagesAPI, worksAPI } from '../services/api';
 import { Page, ReaderSettings } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -367,16 +368,9 @@ const ReaderView: React.FC = () => {
             </div>
           </div>
         ) : (
-          page.content.split('\n\n').map((paragraph, index) => (
-            <p key={index}>
-              {paragraph.split('\n').map((line, lineIndex) => (
-                <span key={lineIndex}>
-                  {line}
-                  {lineIndex < paragraph.split('\n').length - 1 && ' '}
-                </span>
-              ))}
-            </p>
-          ))
+          <ReactMarkdown>
+            {page.content}
+          </ReactMarkdown>
         )}
       </div>
 
