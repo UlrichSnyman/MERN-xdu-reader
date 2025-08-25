@@ -28,6 +28,10 @@ export const usePersistedSettings = () => {
 
   // Load settings from localStorage on component mount or user change
   useEffect(() => {
+    const getStorageKey = () => {
+      return user ? `reader-settings-${user.username}` : 'reader-settings-guest';
+    };
+
     const storageKey = getStorageKey();
     const savedSettings = localStorage.getItem(storageKey);
     

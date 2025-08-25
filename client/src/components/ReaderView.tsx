@@ -83,7 +83,7 @@ const ReaderView: React.FC = () => {
         speechSynthesis.onvoiceschanged = null;
       }
     };
-  }, [settings.selectedVoice]);
+  }, [settings.selectedVoice, updateSettings]);
 
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;

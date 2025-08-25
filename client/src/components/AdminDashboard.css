@@ -272,6 +272,12 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
+
+  .work-actions {
+    align-self: stretch;
+    justify-content: space-evenly;
+    margin-top: 0.5rem;
+  }
 }
 
 /* Create Content Tab Styles */

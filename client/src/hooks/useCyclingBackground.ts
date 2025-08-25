@@ -3,7 +3,6 @@ import { worksAPI } from '../services/api';
 
 export const useCyclingBackground = (cycleInterval: number = 10000) => {
   const [coverImages, setCoverImages] = useState<string[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentImage, setCurrentImage] = useState<string>('');
 
   useEffect(() => {
@@ -30,12 +29,10 @@ export const useCyclingBackground = (cycleInterval: number = 10000) => {
   useEffect(() => {
     if (coverImages.length <= 1) return;
 
+    let currentIndex = 0;
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % coverImages.length;
-        setCurrentImage(coverImages[nextIndex]);
-        return nextIndex;
-      });
+      currentIndex = (currentIndex + 1) % coverImages.length;
+      setCurrentImage(coverImages[currentIndex]);
     }, cycleInterval);
 
     return () => clearInterval(interval);
