@@ -75,6 +75,10 @@ export interface ReaderSettings {
   isPlaying: boolean;
   speechRate: number;
   selectedVoice: string;
+  autoNavigate: boolean;
+  autoScroll: boolean;
+  currentParagraph: number;
+  autoStartAfterNavigation: boolean;
 }
 
 export interface CommentFormData {
