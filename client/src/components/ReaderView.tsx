@@ -23,6 +23,7 @@ const ReaderView: React.FC = () => {
   
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Admin edit state - changed from modal to inline
   const [isEditing, setIsEditing] = useState(false);
@@ -99,6 +100,10 @@ const ReaderView: React.FC = () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = null;
       }
+      // Clean up scroll interval
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+      }
     };
   }, []);
 
@@ -109,12 +114,43 @@ const ReaderView: React.FC = () => {
     }
   }, [availableVoices, settings.selectedVoice, updateSettings]);
 
+  const startAutoScroll = () => {
+    if (!settings.autoScroll || !contentRef.current) return;
+    
+    const scrollHeight = contentRef.current.scrollHeight;
+    const clientHeight = contentRef.current.clientHeight;
+    const scrollableHeight = scrollHeight - clientHeight;
+    
+    if (scrollableHeight <= 0) return;
+    
+    // Scroll gradually over the duration of speech
+    const scrollStep = scrollableHeight / 100; // Adjust speed as needed
+    let currentScroll = 0;
+    
+    scrollIntervalRef.current = setInterval(() => {
+      if (currentScroll < scrollableHeight && settings.isPlaying) {
+        currentScroll += scrollStep;
+        if (contentRef.current) {
+          contentRef.current.scrollTop = currentScroll;
+        }
+      }
+    }, 100);
+  };
+
+  const stopAutoScroll = () => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  };
+
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;
 
     if ('speechSynthesis' in window) {
       // Stop current speech if any
       window.speechSynthesis.cancel();
+      stopAutoScroll();
       
       const utterance = new SpeechSynthesisUtterance(page.content);
       utterance.rate = settings.speechRate;
@@ -129,14 +165,24 @@ const ReaderView: React.FC = () => {
       
       utterance.onstart = () => {
         updateSettings({ isPlaying: true });
+        startAutoScroll();
       };
       
       utterance.onend = () => {
         updateSettings({ isPlaying: false });
+        stopAutoScroll();
+        
+        // Auto-navigate to next page if enabled and next page exists
+        if (settings.autoNavigate && page.navigation?.next) {
+          setTimeout(() => {
+            navigatePage('next');
+          }, 1000); // Brief pause before navigating
+        }
       };
       
       utterance.onerror = () => {
         updateSettings({ isPlaying: false });
+        stopAutoScroll();
       };
       
       speechRef.current = utterance;
@@ -146,10 +192,31 @@ const ReaderView: React.FC = () => {
     }
   };
 
+  const pauseTextToSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.pause();
+      updateSettings({ isPlaying: false });
+      stopAutoScroll();
+    }
+  };
+
+  const resumeTextToSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.resume();
+      updateSettings({ isPlaying: true });
+      startAutoScroll();
+    }
+  };
+
   const stopTextToSpeech = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       updateSettings({ isPlaying: false });
+      stopAutoScroll();
+      // Reset scroll position
+      if (contentRef.current) {
+        contentRef.current.scrollTop = 0;
+      }
     }
   };
 
@@ -288,12 +355,44 @@ const ReaderView: React.FC = () => {
                   </select>
                 </div>
                 
-                <button
-                  onClick={settings.isPlaying ? stopTextToSpeech : startTextToSpeech}
-                  className={`tts-btn ${settings.isPlaying ? 'playing' : ''}`}
-                >
-                  {settings.isPlaying ? 'Pause' : 'Play'}
-                </button>
+                {/* TTS Control Buttons */}
+                <div className="tts-button-group">
+                  <button
+                    onClick={settings.isPlaying ? pauseTextToSpeech : (window.speechSynthesis?.paused ? resumeTextToSpeech : startTextToSpeech)}
+                    className={`tts-btn ${settings.isPlaying ? 'playing' : ''}`}
+                  >
+                    {settings.isPlaying ? 'Pause' : (window.speechSynthesis?.paused ? 'Resume' : 'Play')}
+                  </button>
+                  
+                  <button
+                    onClick={stopTextToSpeech}
+                    className="tts-btn stop-btn"
+                    disabled={!settings.isPlaying && !window.speechSynthesis?.paused}
+                  >
+                    Stop
+                  </button>
+                </div>
+                
+                {/* Auto-navigation toggle */}
+                <div className="tts-options">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={settings.autoNavigate}
+                      onChange={(e) => updateSettings({ autoNavigate: e.target.checked })}
+                    />
+                    Auto-navigate to next page
+                  </label>
+                  
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={settings.autoScroll}
+                      onChange={(e) => updateSettings({ autoScroll: e.target.checked })}
+                    />
+                    Auto-scroll during reading
+                  </label>
+                </div>
                 
                 <div className="speed-control">
                   <label>Speed: {settings.speechRate}x</label>

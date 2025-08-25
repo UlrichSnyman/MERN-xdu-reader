@@ -39,6 +39,21 @@ const mockWorks = [
     ],
     createdAt: new Date('2024-02-01').toISOString(),
     updatedAt: new Date('2024-02-01').toISOString()
+  },
+  {
+    _id: '3',
+    title: 'The Epic Novel Collection',
+    synopsis: 'A massive collection with many chapters to test pagination functionality.',
+    category: 'library',
+    likes: 156,
+    pages: Array.from({ length: 45 }, (_, i) => ({
+      _id: `pg${i + 1}`,
+      title: `Chapter ${i + 1}: ${['The Beginning', 'The Quest', 'The Challenge', 'The Discovery', 'The Battle', 'The Victory', 'The Return', 'The End'][i % 8]}`,
+      pageNumber: i + 1,
+      createdAt: new Date('2024-03-01').toISOString()
+    })),
+    createdAt: new Date('2024-03-01').toISOString(),
+    updatedAt: new Date('2024-03-01').toISOString()
   }
 ];
 
@@ -101,7 +116,33 @@ const mockPages = [
       previous: null,
       next: null
     }
-  }
+  },
+  // Add pages for the large collection to test pagination
+  ...Array.from({ length: 45 }, (_, i) => ({
+    _id: `pg${i + 1}`,
+    title: `Chapter ${i + 1}: ${['The Beginning', 'The Quest', 'The Challenge', 'The Discovery', 'The Battle', 'The Victory', 'The Return', 'The End'][i % 8]}`,
+    content: `This is the content for Chapter ${i + 1}. ${['An epic beginning awaits...', 'The quest unfolds with mystery...', 'Challenges test our heroes...', 'Discoveries change everything...', 'Battle rages across the lands...', 'Victory brings new hope...', 'The return journey begins...', 'The end of one story, beginning of another...'][i % 8]}\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`,
+    work: {
+      _id: '3',
+      title: 'The Epic Novel Collection'
+    },
+    pageNumber: i + 1,
+    likes: Math.floor(Math.random() * 20) + 1,
+    createdAt: new Date('2024-03-01').toISOString(),
+    updatedAt: new Date('2024-03-01').toISOString(),
+    navigation: {
+      previous: i > 0 ? {
+        _id: `pg${i}`,
+        title: `Chapter ${i}: ${['The Beginning', 'The Quest', 'The Challenge', 'The Discovery', 'The Battle', 'The Victory', 'The Return', 'The End'][(i - 1) % 8]}`,
+        pageNumber: i
+      } : null,
+      next: i < 44 ? {
+        _id: `pg${i + 2}`,
+        title: `Chapter ${i + 2}: ${['The Beginning', 'The Quest', 'The Challenge', 'The Discovery', 'The Battle', 'The Victory', 'The Return', 'The End'][(i + 1) % 8]}`,
+        pageNumber: i + 2
+      } : null
+    }
+  }))
 ];
 
 const mockSuggestions = [

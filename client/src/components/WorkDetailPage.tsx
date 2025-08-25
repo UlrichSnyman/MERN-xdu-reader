@@ -10,7 +10,10 @@ const WorkDetailPage: React.FC = () => {
   const [work, setWork] = useState<Work | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPageGroup, setCurrentPageGroup] = useState(1);
   const { isAuthenticated, user } = useAuth();
+
+  const PAGES_PER_GROUP = 20;
 
   useEffect(() => {
     const fetchWork = async () => {
@@ -134,6 +137,13 @@ const WorkDetailPage: React.FC = () => {
     );
   }
 
+  // Calculate pagination
+  const totalPages = Array.isArray(work.pages) ? work.pages.length : 0;
+  const totalGroups = Math.ceil(totalPages / PAGES_PER_GROUP);
+  const startIndex = (currentPageGroup - 1) * PAGES_PER_GROUP;
+  const endIndex = startIndex + PAGES_PER_GROUP;
+  const currentPages = Array.isArray(work.pages) ? work.pages.slice(startIndex, endIndex) : [];
+
   return (
     <div 
       className={`work-detail-page ${work.coverImage ? 'with-cover' : ''}`}
@@ -186,13 +196,47 @@ const WorkDetailPage: React.FC = () => {
       </div>
 
       <div className="pages-section">
-        <h2>Pages</h2>
+        <div className="pages-header">
+          <h2>Pages</h2>
+          {totalGroups > 1 && (
+            <div className="pagination-controls">
+              <span className="pagination-info">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalPages)} of {totalPages} pages
+              </span>
+              <div className="pagination-buttons">
+                <button
+                  onClick={() => setCurrentPageGroup(prev => Math.max(1, prev - 1))}
+                  disabled={currentPageGroup === 1}
+                  className="pagination-btn"
+                >
+                  ←
+                </button>
+                {Array.from({ length: totalGroups }, (_, i) => i + 1).map(groupNum => (
+                  <button
+                    key={groupNum}
+                    onClick={() => setCurrentPageGroup(groupNum)}
+                    className={`pagination-btn ${currentPageGroup === groupNum ? 'active' : ''}`}
+                  >
+                    {groupNum}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPageGroup(prev => Math.min(totalGroups, prev + 1))}
+                  disabled={currentPageGroup === totalGroups}
+                  className="pagination-btn"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         {Array.isArray(work.pages) && work.pages.length > 0 ? (
           <div className="pages-list">
-            {work.pages.map((page: any, index: number) => (
+            {currentPages.map((page: any, index: number) => (
               <div key={typeof page === 'string' ? page : page._id} className="page-item">
                 <div className="page-info">
-                  <span className="page-number">{index + 1}</span>
+                  <span className="page-number">{startIndex + index + 1}</span>
                   <h3 className="page-title">
                     {typeof page === 'string' ? 'Loading...' : page.title}
                   </h3>
