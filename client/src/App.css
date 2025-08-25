@@ -85,18 +85,7 @@ body {
   position: relative;
 }
 
-/* Geometric asymmetric background pattern */
-.main-content::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 100vh;
-  background: linear-gradient(180deg, var(--accent-color) 0%, transparent 40%);
-  opacity: 0.05;
-  z-index: -1;
-}
+/* Removed decorative background pattern */
 
 /* Global loading spinner with geometric design */
 .loading-spinner {
@@ -332,10 +321,6 @@ button.btn-primary:hover {
 @media (max-width: 768px) {
   .main-content {
     padding: 0;
-  }
-  
-  .main-content::before {
-    width: 60px;
   }
 }
 

@@ -9,7 +9,6 @@ export interface Work {
   title: string;
   synopsis?: string;
   coverImage?: string;
-  category: 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic';
   likes: number;
   pages: Page[] | string[];
   createdAt: string;

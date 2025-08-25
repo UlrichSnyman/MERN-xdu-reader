@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI, loreAPI } from '../services/api';
-import { Work, Suggestion, Page } from '../types';
+import { worksAPI, suggestionsAPI, uploadAPI, loreAPI } from '../services/api';
+import { Work, Suggestion } from '../types';
 import RichTextEditor from './RichTextEditor';
 import './AdminDashboard.css';
 
@@ -18,8 +18,7 @@ const AdminDashboard: React.FC = () => {
   const [workForm, setWorkForm] = useState({
     title: '',
     synopsis: '',
-    coverImage: '',
-    category: 'general' as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'
+    coverImage: ''
   });
   
   const [loreForm, setLoreForm] = useState({
@@ -39,8 +38,7 @@ const AdminDashboard: React.FC = () => {
   const [editForm, setEditForm] = useState({
     title: '',
     synopsis: '',
-    coverImage: '',
-    category: 'general' as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'
+    coverImage: ''
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -108,8 +106,7 @@ const AdminDashboard: React.FC = () => {
     setEditForm({
       title: work.title,
       synopsis: work.synopsis || '',
-      coverImage: work.coverImage || '',
-      category: work.category
+      coverImage: work.coverImage || ''
     });
   };
 
@@ -125,7 +122,7 @@ const AdminDashboard: React.FC = () => {
       const response = await worksAPI.update(editingWork._id, editForm);
       setWorks(works.map(w => w._id === editingWork._id ? response.data : w));
       setEditingWork(null);
-      setEditForm({ title: '', synopsis: '', coverImage: '', category: 'general' });
+      setEditForm({ title: '', synopsis: '', coverImage: '' });
       alert('Work updated successfully!');
     } catch (error) {
       console.error('Error updating work:', error);
@@ -137,7 +134,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditingWork(null);
-    setEditForm({ title: '', synopsis: '', coverImage: '', category: 'general' });
+    setEditForm({ title: '', synopsis: '', coverImage: '' });
   };
 
   const handleCreateWork = async (e: React.FormEvent) => {
@@ -151,7 +148,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const response = await worksAPI.create(workForm);
       setWorks([response.data, ...works]);
-      setWorkForm({ title: '', synopsis: '', coverImage: '', category: 'general' });
+      setWorkForm({ title: '', synopsis: '', coverImage: '' });
       alert('Work created successfully!');
     } catch (error) {
       console.error('Error creating work:', error);
@@ -400,23 +397,6 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               
-              <div className="form-group">
-                <label htmlFor="edit-category">Category</label>
-                <select
-                  id="edit-category"
-                  value={editForm.category}
-                  onChange={(e) => setEditForm({...editForm, category: e.target.value as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'})}
-                  disabled={submitting}
-                >
-                  <option value="general">General</option>
-                  <option value="worldbuilding">Worldbuilding</option>
-                  <option value="characters">Characters</option>
-                  <option value="history">History</option>
-                  <option value="locations">Locations</option>
-                  <option value="magic">Magic</option>
-                </select>
-              </div>
-              
               <div className="modal-actions">
                 <button type="button" onClick={handleCancelEdit} className="cancel-btn">
                   Cancel
@@ -511,23 +491,6 @@ const AdminDashboard: React.FC = () => {
                   />
                 </div>
                 
-                <div className="form-group">
-                  <label htmlFor="work-category">Category</label>
-                  <select
-                    id="work-category"
-                    value={workForm.category}
-                    onChange={(e) => setWorkForm({...workForm, category: e.target.value as 'general' | 'worldbuilding' | 'characters' | 'history' | 'locations' | 'magic'})}
-                    disabled={submitting}
-                  >
-                    <option value="general">General</option>
-                    <option value="worldbuilding">Worldbuilding</option>
-                    <option value="characters">Characters</option>
-                    <option value="history">History</option>
-                    <option value="locations">Locations</option>
-                    <option value="magic">Magic</option>
-                  </select>
-                </div>
-                
                 <button type="submit" disabled={submitting || !workForm.title.trim()}>
                   {submitting ? 'Creating...' : 'Create Work'}
                 </button>
@@ -550,13 +513,18 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="form-group">
                   <label htmlFor="lore-category">Category</label>
-                  <input
+                  <select
                     id="lore-category"
-                    type="text"
                     value={loreForm.category}
                     onChange={(e) => setLoreForm({ ...loreForm, category: e.target.value })}
                     disabled={submitting}
-                  />
+                  >
+                    <option value="general">General</option>
+                    <option value="worldbuilding">Worldbuilding</option>
+                    <option value="characters">Characters</option>
+                    <option value="history">History</option>
+                    <option value="locations">Locations</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label htmlFor="lore-content">Content *</label>
@@ -642,14 +610,18 @@ const AdminDashboard: React.FC = () => {
             {uploadForm.destination === 'lore' && (
               <div className="form-group">
                 <label htmlFor="upload-category">Lore Category</label>
-                <input
+                <select
                   id="upload-category"
-                  type="text"
                   value={uploadForm.category}
                   onChange={(e) => setUploadForm({...uploadForm, category: e.target.value})}
                   disabled={submitting}
-                  placeholder="e.g., worldbuilding, history, characters"
-                />
+                >
+                  <option value="general">General</option>
+                  <option value="worldbuilding">Worldbuilding</option>
+                  <option value="characters">Characters</option>
+                  <option value="history">History</option>
+                  <option value="locations">Locations</option>
+                </select>
               </div>
             )}
 

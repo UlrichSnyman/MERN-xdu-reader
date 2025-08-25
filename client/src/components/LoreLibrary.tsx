@@ -12,7 +12,7 @@ const LoreLibrary: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const { isAuthenticated } = useAuth();
 
-  const categories = ['worldbuilding', 'characters', 'history', 'locations', 'magic', 'general'];
+  const categories = ['worldbuilding', 'characters', 'history', 'locations', 'general'];
 
   useEffect(() => {
     const fetchLore = async () => {

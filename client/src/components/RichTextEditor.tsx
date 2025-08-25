@@ -20,7 +20,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [mode, setMode] = useState<'visual' | 'markdown'>('visual');
 
   const handleFormatText = (format: string) => {
-    const textarea = document.querySelector('.w-tc-editor textarea') as HTMLTextAreaElement;
+    const visualTextarea = document.querySelector('.visual-editor') as HTMLTextAreaElement;
+    const markdownTextarea = document.querySelector('.w-tc-editor textarea') as HTMLTextAreaElement;
+    const textarea = mode === 'visual' ? visualTextarea : markdownTextarea;
+    
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -157,7 +160,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             padding={15}
             style={{
               fontSize: 14,
-              backgroundColor: "#f5f5f5",
+              backgroundColor: "var(--bg-secondary)",
+              color: "var(--text-primary)",
               fontFamily: 'ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace',
               minHeight: `${rows * 20}px`,
             }}

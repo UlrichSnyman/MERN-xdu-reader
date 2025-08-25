@@ -147,7 +147,6 @@ const WorkDetailPage: React.FC = () => {
           )}
           <div className="work-details">
             <h1>{work.title}</h1>
-            <span className="work-category">{work.category}</span>
             {work.synopsis && (
               <p className="work-synopsis">{work.synopsis}</p>
             )}
