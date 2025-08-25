@@ -9,6 +9,8 @@ export interface ReaderSettings {
   selectedVoice: string;
   autoNavigate: boolean;
   autoScroll: boolean;
+  currentParagraph: number;
+  autoStartAfterNavigation: boolean;
 }
 
 const defaultSettings: ReaderSettings = {
@@ -19,6 +21,8 @@ const defaultSettings: ReaderSettings = {
   selectedVoice: '',
   autoNavigate: true,
   autoScroll: true,
+  currentParagraph: 0,
+  autoStartAfterNavigation: false,
 };
 
 export const usePersistedSettings = () => {

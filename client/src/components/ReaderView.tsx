@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { pagesAPI, worksAPI } from '../services/api';
@@ -24,10 +24,64 @@ const ReaderView: React.FC = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // State for paragraph-based TTS
+  const [paragraphs, setParagraphs] = useState<string[]>([]);
+  const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
+  
+  // Page cache for preloading
+  const [pageCache, setPageCache] = useState<Map<string, Page>>(new Map());
 
   // Admin edit state - changed from modal to inline
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
+
+  // Utility function to split content into paragraphs
+  const splitIntoParagraphs = (content: string): string[] => {
+    // Split by double newlines (markdown paragraphs) and filter out empty ones
+    return content
+      .split(/\n\s*\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+  };
+
+  // Preload adjacent pages
+  const preloadPage = useCallback(async (pageId: string) => {
+    if (pageCache.has(pageId)) return pageCache.get(pageId);
+    
+    try {
+      const response = await pagesAPI.getById(pageId);
+      const pageData = response.data;
+      setPageCache(prev => new Map(prev).set(pageId, pageData));
+      return pageData;
+    } catch (err) {
+      console.error('Failed to preload page:', pageId, err);
+      return null;
+    }
+  }, [pageCache]);
+
+  const preloadAdjacentPages = useCallback(async (currentPage: Page) => {
+    const preloadPromises = [];
+    
+    if (currentPage.navigation?.next) {
+      preloadPromises.push(preloadPage(currentPage.navigation.next._id));
+    }
+    
+    if (currentPage.navigation?.previous) {
+      preloadPromises.push(preloadPage(currentPage.navigation.previous._id));
+    }
+    
+    await Promise.all(preloadPromises);
+  }, [preloadPage]);
+
+  const navigatePage = useCallback((direction: 'previous' | 'next') => {
+    if (!page?.navigation) return;
+    
+    const targetPage = page.navigation[direction];
+    if (targetPage) {
+      navigate(`/read/${targetPage._id}`);
+    }
+  }, [page, navigate]);
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -43,8 +97,37 @@ const ReaderView: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'auto' });
       
       try {
-        const response = await pagesAPI.getById(pageId);
-        setPage(response.data);
+        // Try to get from cache first
+        let pageData = pageCache.get(pageId);
+        
+        if (!pageData) {
+          const response = await pagesAPI.getById(pageId);
+          pageData = response.data;
+          setPageCache(prev => new Map(prev).set(pageId, pageData!));
+        }
+        
+        setPage(pageData!);
+        
+        // Split content into paragraphs
+        const pageParagraphs = splitIntoParagraphs(pageData!.content);
+        setParagraphs(pageParagraphs);
+        
+        // Reset current paragraph or use saved position
+        const startParagraph = settings.autoStartAfterNavigation ? settings.currentParagraph : 0;
+        setCurrentParagraphIndex(startParagraph);
+        
+        // Auto-start TTS if coming from navigation
+        if (settings.autoStartAfterNavigation && pageParagraphs.length > 0) {
+          updateSettings({ autoStartAfterNavigation: false });
+          // Small delay to ensure page is rendered
+          setTimeout(() => {
+            startTextToSpeechFromParagraph(startParagraph);
+          }, 500);
+        }
+        
+        // Preload adjacent pages in the background
+        preloadAdjacentPages(pageData!);
+        
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load page');
       } finally {
@@ -53,7 +136,7 @@ const ReaderView: React.FC = () => {
     };
 
     fetchPage();
-  }, [pageId]);
+  }, [pageId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ensure view updates cleanly when the route (pageId) changes
   useEffect(() => {
@@ -114,7 +197,7 @@ const ReaderView: React.FC = () => {
     }
   }, [availableVoices, settings.selectedVoice, updateSettings]);
 
-  const startAutoScroll = () => {
+  const startAutoScroll = useCallback(() => {
     if (!settings.autoScroll || !contentRef.current) return;
     
     const scrollHeight = contentRef.current.scrollHeight;
@@ -123,36 +206,35 @@ const ReaderView: React.FC = () => {
     
     if (scrollableHeight <= 0) return;
     
-    // Scroll gradually over the duration of speech
-    const scrollStep = scrollableHeight / 100; // Adjust speed as needed
-    let currentScroll = 0;
-    
-    scrollIntervalRef.current = setInterval(() => {
-      if (currentScroll < scrollableHeight && settings.isPlaying) {
-        currentScroll += scrollStep;
-        if (contentRef.current) {
-          contentRef.current.scrollTop = currentScroll;
-        }
-      }
-    }, 100);
-  };
+    // Scroll to current paragraph
+    const paragraphElements = contentRef.current.querySelectorAll('.paragraph');
+    if (paragraphElements[currentParagraphIndex]) {
+      paragraphElements[currentParagraphIndex].scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  }, [settings.autoScroll, currentParagraphIndex]);
 
-  const stopAutoScroll = () => {
+  const stopAutoScroll = useCallback(() => {
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
       scrollIntervalRef.current = null;
     }
-  };
+  }, []);
 
-  const startTextToSpeech = () => {
-    if (!page || !contentRef.current) return;
+  const startTextToSpeechFromParagraph = useCallback((paragraphIndex: number) => {
+    if (paragraphs.length === 0 || paragraphIndex >= paragraphs.length) return;
 
     if ('speechSynthesis' in window) {
       // Stop current speech if any
       window.speechSynthesis.cancel();
       stopAutoScroll();
       
-      const utterance = new SpeechSynthesisUtterance(page.content);
+      setCurrentParagraphIndex(paragraphIndex);
+      updateSettings({ currentParagraph: paragraphIndex });
+      
+      const utterance = new SpeechSynthesisUtterance(paragraphs[paragraphIndex]);
       utterance.rate = settings.speechRate;
       utterance.pitch = 1;
       utterance.volume = 1;
@@ -172,11 +254,23 @@ const ReaderView: React.FC = () => {
         updateSettings({ isPlaying: false });
         stopAutoScroll();
         
-        // Auto-navigate to next page if enabled and next page exists
-        if (settings.autoNavigate && page.navigation?.next) {
+        // Move to next paragraph or next page
+        if (paragraphIndex + 1 < paragraphs.length) {
+          // Continue with next paragraph
           setTimeout(() => {
-            navigatePage('next');
-          }, 1000); // Brief pause before navigating
+            startTextToSpeechFromParagraph(paragraphIndex + 1);
+          }, 500);
+        } else {
+          // Auto-navigate to next page if enabled and next page exists
+          if (settings.autoNavigate && page?.navigation?.next) {
+            updateSettings({ 
+              autoStartAfterNavigation: true,
+              currentParagraph: 0 
+            });
+            setTimeout(() => {
+              navigatePage('next');
+            }, 1000);
+          }
         }
       };
       
@@ -190,6 +284,10 @@ const ReaderView: React.FC = () => {
     } else {
       alert('Text-to-speech is not supported in your browser.');
     }
+  }, [paragraphs, settings.speechRate, settings.selectedVoice, settings.autoNavigate, availableVoices, updateSettings, page, navigatePage, startAutoScroll, stopAutoScroll]);
+
+  const startTextToSpeech = () => {
+    startTextToSpeechFromParagraph(settings.currentParagraph || 0);
   };
 
   const pauseTextToSpeech = () => {
@@ -211,21 +309,13 @@ const ReaderView: React.FC = () => {
   const stopTextToSpeech = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      updateSettings({ isPlaying: false });
+      updateSettings({ isPlaying: false, currentParagraph: 0 });
       stopAutoScroll();
+      setCurrentParagraphIndex(0);
       // Reset scroll position
       if (contentRef.current) {
         contentRef.current.scrollTop = 0;
       }
-    }
-  };
-
-  const navigatePage = (direction: 'previous' | 'next') => {
-    if (!page?.navigation) return;
-    
-    const targetPage = page.navigation[direction];
-    if (targetPage) {
-      navigate(`/read/${targetPage._id}`);
     }
   };
 
@@ -469,9 +559,22 @@ const ReaderView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <ReactMarkdown>
-            {page.content}
-          </ReactMarkdown>
+          <div className="paragraph-container">
+            {paragraphs.map((paragraph, index) => (
+              <div
+                key={index}
+                className={`paragraph ${
+                  settings.isPlaying && index === currentParagraphIndex 
+                    ? 'current-paragraph' 
+                    : ''
+                }`}
+              >
+                <ReactMarkdown>
+                  {paragraph}
+                </ReactMarkdown>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
