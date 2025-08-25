@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { worksAPI, suggestionsAPI, pagesAPI, uploadAPI, loreAPI } from '../services/api';
-import { Work, Suggestion, Page } from '../types';
+import { worksAPI, suggestionsAPI, uploadAPI, loreAPI } from '../services/api';
+import { Work, Suggestion } from '../types';
 import RichTextEditor from './RichTextEditor';
 import './AdminDashboard.css';
 
