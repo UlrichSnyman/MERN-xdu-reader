@@ -4,6 +4,7 @@ import { loreAPI } from '../services/api';
 import { Lore } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useCyclingBackground } from '../hooks/useCyclingBackground';
+import { useRotatingLoadingMessage } from '../hooks/useRotatingLoadingMessage';
 import './LoreLibrary.css';
 
 const LoreLibrary: React.FC = () => {
@@ -13,6 +14,15 @@ const LoreLibrary: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const { isAuthenticated } = useAuth();
   const backgroundImage = useCyclingBackground();
+  
+  // Rotating loading message for lore library
+  const loadingMessage = useRotatingLoadingMessage([
+    'Loading lore library...',
+    'Gathering knowledge...',
+    'Fetching wisdom...',
+    'Preparing lore...',
+    'Loading entries...'
+  ]);
 
   const categories = ['worldbuilding', 'characters', 'history', 'locations', 'general'];
 
@@ -67,7 +77,7 @@ const LoreLibrary: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading lore library...</p>
+        <p>{loadingMessage}</p>
       </div>
     );
   }
@@ -139,8 +149,8 @@ const LoreLibrary: React.FC = () => {
                     >
                       {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
                     </button>
-                    <Link to={`/lore/${lore._id}`} className="read-btn">
-                      Browse
+                    <Link to={`/lore/read/${lore._id}`} className="read-btn">
+                      Read
                     </Link>
                   </div>
                   {( (lore as any).likedByUsers && (lore as any).likedByUsers.length > 0 ) && (

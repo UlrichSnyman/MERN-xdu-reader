@@ -8,6 +8,7 @@ import WorkDetailPage from './components/WorkDetailPage';
 import ReaderView from './components/ReaderView';
 import LoreLibrary from './components/LoreLibrary';
 import LoreDetailPage from './components/LoreDetailPage';
+import LoreReader from './components/LoreReader';
 import SuggestionsPage from './components/SuggestionsPage';
 import LoginForm from './components/LoginForm';
 import AdminDashboard from './components/AdminDashboard';
@@ -24,6 +25,7 @@ function AppRoutes() {
       <Route path="/read/:pageId" element={<ReaderView />} />
       <Route path="/lore" element={<LoreLibrary />} />
       <Route path="/lore/:id" element={<LoreDetailPage />} />
+      <Route path="/lore/read/:loreId" element={<LoreReader />} />
       <Route path="/suggestions" element={<SuggestionsPage />} />
       <Route path="/login" element={<LoginForm />} />
       <Route 
