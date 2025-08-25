@@ -25,11 +25,6 @@ export const usePersistedSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState<ReaderSettings>(defaultSettings);
 
-  // Create a unique storage key based on user
-  const getStorageKey = () => {
-    return user ? `reader-settings-${user.username}` : 'reader-settings-guest';
-  };
-
   // Load settings from localStorage on component mount or user change
   useEffect(() => {
     const getStorageKey = () => {
