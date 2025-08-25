@@ -26,7 +26,37 @@ const ReaderView: React.FC = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+  // During seamless cross-page continuation, keep speaking through navigation
+  const seamlessRef = useRef(false);
+  // Buffer next page while seamlessly speaking to avoid visual jump
+  const deferredPageRef = useRef<Page | null>(null);
+  // Track current route pageId as a ref
+  const pageIdRef = useRef<string | undefined>(pageId);
+  useEffect(() => { pageIdRef.current = pageId; }, [pageId]);
+  // Pending auto-start target after seamless continuation
+  const nextAutoStartRef = useRef<{ pageId: string; index: number } | null>(null);
+
+  // Helper to apply highlight immediately (with inline fallback styles)
+  const applyHighlight = useCallback((index: number) => {
+    if (!contentRef.current) return;
+    const nodes = contentRef.current.querySelectorAll<HTMLElement>('.paragraph');
+    nodes.forEach((el, i) => {
+      const active = i === index;
+      el.classList.toggle('current-paragraph', active);
+      if (active) {
+        el.setAttribute('data-current', 'true');
+        el.style.outline = '2px solid var(--accent-color)';
+        el.style.background = 'linear-gradient(135deg, rgba(64,224,208,0.18) 0%, rgba(100,149,237,0.18) 100%)';
+        // Force reflow to ensure styles paint immediately
+        void el.offsetHeight;
+      } else {
+        el.removeAttribute('data-current');
+        el.style.outline = '';
+        el.style.background = '';
+      }
+    });
+  }, []);
+
   // State for paragraph-based TTS
   const [paragraphs, setParagraphs] = useState<string[]>([]);
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
@@ -108,10 +138,16 @@ const ReaderView: React.FC = () => {
       // Cleanup on route change
       setError(null);
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+        // Cancel TTS unless we're in seamless continuation
+        if (!seamlessRef.current) {
+          window.speechSynthesis.cancel();
+        }
       }
       setIsEditing(false);
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      // Avoid jump to top during seamless continuation
+      if (!seamlessRef.current) {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
 
       const cached = getCachedPage(pageId);
 
@@ -124,12 +160,18 @@ const ReaderView: React.FC = () => {
           prefetchNeighbors(workId, cached._id);
         }
       } else {
-        setLoading(true);
+        // Do not show spinner during seamless read to avoid visual jump
+        setLoading(!seamlessRef.current);
       }
 
       try {
         const response = await pagesAPI.getById(pageId);
-        setPage(response.data);
+        // If we're in seamless mode, defer swapping content to avoid a visual jump
+        if (seamlessRef.current) {
+          deferredPageRef.current = response.data;
+        } else {
+          setPage(response.data);
+        }
         cachePage(response.data);
         setContentVersion(v => v + 1);
 
@@ -166,7 +208,8 @@ const ReaderView: React.FC = () => {
           const workId = typeof page.work === 'string' ? page.work : (page.work as any)._id;
           await worksAPI.updateProgress(workId, pageId!);
         } catch (err) {
-          console.error('Failed to track reading progress:', err);
+          // Non-blocking: ignore failures (backend may not support progress in demo)
+          // console.debug('Reading progress update failed (non-blocking).');
         }
       }
     };
@@ -239,61 +282,90 @@ const ReaderView: React.FC = () => {
       // Stop current speech if any
       window.speechSynthesis.cancel();
       stopAutoScroll();
-      
+
       setCurrentParagraphIndex(paragraphIndex);
+      applyHighlight(paragraphIndex);
+      // Ensure highlight after state flush
+      setTimeout(() => applyHighlight(paragraphIndex), 0);
       updateSettings({ currentParagraph: paragraphIndex });
-      
-      const utterance = new SpeechSynthesisUtterance(paragraphs[paragraphIndex]);
-      utterance.rate = settings.speechRate;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      // Set selected voice
-      const selectedVoice = availableVoices.find(voice => voice.name === settings.selectedVoice);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-      
-      utterance.onstart = () => {
-        updateSettings({ isPlaying: true });
-        startAutoScroll();
+
+      const speakText = (text: string, onDone?: () => void) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = settings.speechRate;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        const selectedVoice = availableVoices.find(voice => voice.name === settings.selectedVoice);
+        if (selectedVoice) utterance.voice = selectedVoice;
+        utterance.onstart = () => {
+          updateSettings({ isPlaying: true });
+          startAutoScroll();
+        };
+        utterance.onend = () => {
+          updateSettings({ isPlaying: false });
+          stopAutoScroll();
+          if (onDone) onDone();
+        };
+        utterance.onerror = () => {
+          updateSettings({ isPlaying: false });
+          stopAutoScroll();
+          seamlessRef.current = false;
+        };
+        speechRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
       };
-      
-      utterance.onend = () => {
-        updateSettings({ isPlaying: false });
-        stopAutoScroll();
-        
-        // Move to next paragraph or next page
-        if (paragraphIndex + 1 < paragraphs.length) {
-          // Continue with next paragraph
-          setTimeout(() => {
-            startTextToSpeechFromParagraph(paragraphIndex + 1);
-          }, 500);
-        } else {
-          // Auto-navigate to next page if enabled and next page exists
-          if (settings.autoNavigate && page?.navigation?.next) {
-            updateSettings({ 
-              autoStartAfterNavigation: true,
-              currentParagraph: 0 
+
+      const currentText = paragraphs[paragraphIndex];
+      const isLast = paragraphIndex === paragraphs.length - 1;
+
+      if (isLast && settings.autoNavigate && page?.navigation?.next) {
+        const lastText = currentText.trim();
+        const endsWithTerminator = /[\.!?…]["'”’)]?$/.test(lastText);
+        const nextId = page.navigation.next._id;
+        let nextPageData = nextId ? getCachedPage(nextId) : undefined;
+        if (!nextPageData && nextId) {
+          prefetchByIds([nextId]).finally(() => {});
+          nextPageData = getCachedPage(nextId);
+        }
+        if (!endsWithTerminator && nextPageData && nextId) {
+          const nextParas = splitIntoParagraphs(nextPageData.content || '');
+          const firstNext = (nextParas[0] || '').trim();
+          if (firstNext) {
+            // Combine last paragraph with first paragraph of next page
+            const combinedText = `${currentText} ${firstNext}`;
+            speakText(combinedText, () => {
+              // After combined speech, navigate and continue with second paragraph
+              navigate(`/read/${nextId}`);
+              setTimeout(() => {
+                // Continue with paragraph 2 on the new page (index 1)
+                const nodes = contentRef.current?.querySelectorAll('.paragraph');
+                if (nodes && nodes.length > 1) {
+                  setCurrentParagraphIndex(1);
+                  startTextToSpeechFromParagraph(1);
+                }
+              }, 500);
             });
-            setTimeout(() => {
-              navigatePage('next');
-            }, 1000);
+            return;
           }
         }
-      };
-      
-      utterance.onerror = () => {
-        updateSettings({ isPlaying: false });
-        stopAutoScroll();
-      };
-      
-      speechRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
+      }
+
+      // Normal flow: speak current paragraph
+      speakText(currentText, () => {
+        if (paragraphIndex + 1 < paragraphs.length) {
+          setTimeout(() => {
+            startTextToSpeechFromParagraph(paragraphIndex + 1);
+          }, 200);
+          return;
+        }
+        if (page?.navigation?.next && settings.autoNavigate) {
+          updateSettings({ autoStartAfterNavigation: true, currentParagraph: 0 });
+          navigate(`/read/${page.navigation.next._id}`);
+        }
+      });
     } else {
       alert('Text-to-speech is not supported in your browser.');
     }
-  }, [paragraphs, settings.speechRate, settings.selectedVoice, settings.autoNavigate, availableVoices, updateSettings, page, navigatePage, startAutoScroll, stopAutoScroll]);
+  }, [paragraphs, settings.speechRate, settings.selectedVoice, settings.autoNavigate, availableVoices, updateSettings, page, navigate, startAutoScroll, stopAutoScroll, applyHighlight]);
 
   const startTextToSpeech = () => {
     startTextToSpeechFromParagraph(settings.currentParagraph || 0);
@@ -373,6 +445,67 @@ const ReaderView: React.FC = () => {
       alert(err.response?.data?.error || 'Failed to save');
     }
   };
+
+  // Build paragraphs from markdown content whenever it changes
+  useEffect(() => {
+    if (page?.content) {
+      const parts = splitIntoParagraphs(page.content);
+      setParagraphs(parts);
+      setCurrentParagraphIndex(settings.currentParagraph || 0);
+    } else {
+      setParagraphs([]);
+      setCurrentParagraphIndex(0);
+    }
+  }, [page?.content, contentVersion, settings.currentParagraph]);
+
+  // Highlight current paragraph and optionally auto-scroll when index changes
+  useEffect(() => {
+    applyHighlight(currentParagraphIndex);
+    const nodes = contentRef.current?.querySelectorAll<HTMLElement>('.paragraph');
+    const active = nodes && nodes[currentParagraphIndex];
+    if (settings.autoScroll && active) {
+      active.scrollIntoView({ behavior: settings.isPlaying ? 'smooth' : 'auto', block: 'center' });
+    }
+  }, [currentParagraphIndex, contentVersion, settings.autoScroll, settings.isPlaying, applyHighlight]);
+
+  // Auto-start TTS after navigation when flagged, wait until DOM is ready and no speech is currently playing
+  useEffect(() => {
+    if (!settings.autoStartAfterNavigation) return;
+
+    let cleared = false;
+    const tryStart = () => {
+      if (cleared) return true;
+      const nodes = contentRef.current?.querySelectorAll('.paragraph');
+      const speaking = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis.speaking : false;
+      if (nodes && nodes.length > 0 && paragraphs.length > 0 && !speaking) {
+        const index = settings.currentParagraph || 0;
+        applyHighlight(index);
+        startTextToSpeechFromParagraph(index);
+        updateSettings({ autoStartAfterNavigation: false });
+        return true;
+      }
+      return false;
+    };
+
+    if (!tryStart()) {
+      const iv = setInterval(() => {
+        if (tryStart()) clearInterval(iv);
+      }, 100);
+      const to = setTimeout(() => {
+        clearInterval(iv);
+      }, 10000);
+      return () => { cleared = true; clearInterval(iv); clearTimeout(to); };
+    }
+  }, [settings.autoStartAfterNavigation, settings.currentParagraph, paragraphs.length, contentVersion, startTextToSpeechFromParagraph, updateSettings, applyHighlight]);
+
+  // Re-apply highlight when settings panel toggles or play state changes
+  useEffect(() => {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => applyHighlight(currentParagraphIndex));
+    } else {
+      setTimeout(() => applyHighlight(currentParagraphIndex), 0);
+    }
+  }, [showSettings, settings.isPlaying, currentParagraphIndex, applyHighlight]);
 
   if (loading && !(pageId && getCachedPage(pageId))) {
     return (
@@ -510,19 +643,19 @@ const ReaderView: React.FC = () => {
                   <label>Speed: {settings.speechRate}x</label>
                   <input
                     type="range"
-                    min="0.6"
-                    max="3"
-                    step="0.2"
+                    min="0.5"
+                    max="5"
+                    step="0.1"
                     value={settings.speechRate}
                     onChange={(e) => updateSettings({ speechRate: parseFloat(e.target.value) })}
                   />
                   <div className="slider-labels">
-                    <span>0.6x</span>
+                    <span>0.5x</span>
                     <span>1.0x</span>
-                    <span>1.5x</span>
                     <span>2.0x</span>
-                    <span>2.5x</span>
                     <span>3.0x</span>
+                    <span>4.0x</span>
+                    <span>5.0x</span>
                   </div>
                 </div>
               </div>
@@ -581,9 +714,16 @@ const ReaderView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <ReactMarkdown key={contentVersion}>
-            {page.content}
-          </ReactMarkdown>
+          <div className="paragraph-container">
+            <ReactMarkdown
+              key={contentVersion}
+              components={{
+                p: ({ node, ...props }) => <p className="paragraph" {...props} />
+              }}
+            >
+              {page.content}
+            </ReactMarkdown>
+          </div>
         )}
       </div>
 

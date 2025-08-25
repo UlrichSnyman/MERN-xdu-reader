@@ -240,11 +240,25 @@ const unlikeWork = async (req, res) => {
 const updateReadingProgress = async (req, res) => {
   try {
     const { workId, pageId } = req.body;
+
+    // In demo mode or when DB is not available, return a mock success response
+    if (isDemoMode) {
+      return res.json({
+        currentPage: pageId,
+        pagesRead: 0,
+        totalPages: 0
+      });
+    }
+
     const userId = req.user.id;
     
     const work = await Work.findById(workId);
     if (!work) {
       return res.status(404).json({ error: 'Work not found' });
+    }
+
+    if (!Array.isArray(work.readingProgress)) {
+      work.readingProgress = [];
     }
     
     // Find or create user's reading progress
@@ -261,9 +275,10 @@ const updateReadingProgress = async (req, res) => {
     } else {
       progress.currentPage = pageId;
       progress.lastReadAt = new Date();
+      if (!Array.isArray(progress.pagesRead)) progress.pagesRead = [];
       
-      // Add page to pagesRead if not already there
-      if (!progress.pagesRead.includes(pageId)) {
+      // Add page to pagesRead if not already there (handle ObjectId/string)
+      if (!progress.pagesRead.some(p => p.toString() === pageId)) {
         progress.pagesRead.push(pageId);
       }
     }
@@ -273,7 +288,7 @@ const updateReadingProgress = async (req, res) => {
     res.json({
       currentPage: progress.currentPage,
       pagesRead: progress.pagesRead.length,
-      totalPages: work.pages.length
+      totalPages: Array.isArray(work.pages) ? work.pages.length : 0
     });
   } catch (error) {
     console.error('Error updating reading progress:', error);
