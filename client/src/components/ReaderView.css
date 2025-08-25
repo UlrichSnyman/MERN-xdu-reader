@@ -7,17 +7,6 @@
   position: relative;
 }
 
-.reader-view::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -20px;
-  width: 4px;
-  height: 200px;
-  background: var(--gradient-accent);
-  clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
-}
-
 .reader-header {
   margin-bottom: 1.5rem;
 }
@@ -428,4 +417,38 @@
   .font-buttons {
     grid-template-columns: 1fr;
   }
+}
+
+/* Inline Editor Styles */
+.inline-editor {
+  margin: 2rem 0;
+}
+
+.inline-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.inline-edit-actions .cancel-btn {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.inline-edit-actions .save-btn {
+  background: var(--accent-color);
+  color: white;
+  border: 1px solid var(--accent-color);
+}
+
+.inline-edit-actions .cancel-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+.inline-edit-actions .save-btn:hover {
+  background: var(--accent-hover);
 }

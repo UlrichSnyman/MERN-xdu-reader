@@ -78,8 +78,8 @@ export const suggestionsAPI = {
 
 // Comments API
 export const commentsAPI = {
-  getForContent: (contentId: string) => api.get(`/comments/content/${contentId}`),
-  create: (contentId: string, data: any) => api.post(`/comments/content/${contentId}`, data),
+  getForContent: (contentId: string) => api.get(`/comments/${contentId}`),
+  create: (contentId: string, data: any) => api.post(`/comments`, data),
   delete: (commentId: string) => api.delete(`/comments/${commentId}`),
 };
 

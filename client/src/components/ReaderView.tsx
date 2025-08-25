@@ -28,8 +28,8 @@ const ReaderView: React.FC = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Admin edit modal state
-  const [showEditModal, setShowEditModal] = useState(false);
+  // Admin edit state - changed from modal to inline
+  const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
 
   useEffect(() => {
@@ -169,17 +169,22 @@ const ReaderView: React.FC = () => {
     }
   };
 
-  const openEditModal = () => {
+  const openEditMode = () => {
     if (!page) return;
     setEditContent(page.content);
-    setShowEditModal(true);
+    setIsEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setEditContent('');
   };
 
   const saveEdit = async () => {
     if (!page) return;
     try {
       await pagesAPI.update(page._id, { content: editContent });
-      setShowEditModal(false);
+      setIsEditing(false);
       await refreshPage();
     } catch (err: any) {
       console.error('Failed to save page content:', err);
@@ -327,7 +332,9 @@ const ReaderView: React.FC = () => {
           </Link>
           <div className="reader-nav-actions">
             {user?.role === 'admin' && (
-              <button className="edit-page-btn" onClick={openEditModal}>Edit</button>
+              <button className="edit-page-btn" onClick={openEditMode}>
+                {isEditing ? 'Editing...' : 'Edit'}
+              </button>
             )}
             <button 
               className="settings-btn"
@@ -347,16 +354,30 @@ const ReaderView: React.FC = () => {
       </div>
 
       <div className="reader-content" ref={contentRef} style={contentStyle}>
-        {page.content.split('\n\n').map((paragraph, index) => (
-          <p key={index}>
-            {paragraph.split('\n').map((line, lineIndex) => (
-              <span key={lineIndex}>
-                {line}
-                {lineIndex < paragraph.split('\n').length - 1 && ' '}
-              </span>
-            ))}
-          </p>
-        ))}
+        {isEditing ? (
+          <div className="inline-editor">
+            <RichTextEditor
+              value={editContent}
+              onChange={setEditContent}
+              rows={15}
+            />
+            <div className="inline-edit-actions">
+              <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
+              <button className="save-btn" onClick={saveEdit}>Save</button>
+            </div>
+          </div>
+        ) : (
+          page.content.split('\n\n').map((paragraph, index) => (
+            <p key={index}>
+              {paragraph.split('\n').map((line, lineIndex) => (
+                <span key={lineIndex}>
+                  {line}
+                  {lineIndex < paragraph.split('\n').length - 1 && ' '}
+                </span>
+              ))}
+            </p>
+          ))
+        )}
       </div>
 
       {/* Side Arrow Navigation */}
@@ -386,28 +407,6 @@ const ReaderView: React.FC = () => {
         contentType="Page"
       />
 
-      {/* Admin Edit Modal */}
-      {showEditModal && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Edit Page Content</h3>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>&times;</button>
-            </div>
-            <div className="form-group" style={{ padding: '1rem' }}>
-              <RichTextEditor
-                value={editContent}
-                onChange={setEditContent}
-                rows={18}
-              />
-            </div>
-            <div className="modal-actions" style={{ padding: '0 1rem 1rem', display: 'flex', justifyContent: 'flex-end', gap: '.5rem' }}>
-              <button className="cancel-btn" onClick={() => setShowEditModal(false)}>Cancel</button>
-              <button onClick={saveEdit}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
