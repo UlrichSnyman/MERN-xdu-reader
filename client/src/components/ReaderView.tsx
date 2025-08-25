@@ -296,6 +296,7 @@ const ReaderView: React.FC = () => {
         utterance.volume = 1;
         const selectedVoice = availableVoices.find(voice => voice.name === settings.selectedVoice);
         if (selectedVoice) utterance.voice = selectedVoice;
+        
         utterance.onstart = () => {
           updateSettings({ isPlaying: true });
           startAutoScroll();
@@ -308,7 +309,6 @@ const ReaderView: React.FC = () => {
         utterance.onerror = () => {
           updateSettings({ isPlaying: false });
           stopAutoScroll();
-          seamlessRef.current = false;
         };
         speechRef.current = utterance;
         window.speechSynthesis.speak(utterance);
@@ -330,19 +330,15 @@ const ReaderView: React.FC = () => {
           const nextParas = splitIntoParagraphs(nextPageData.content || '');
           const firstNext = (nextParas[0] || '').trim();
           if (firstNext) {
-            // Combine last paragraph with first paragraph of next page
-            const combinedText = `${currentText} ${firstNext}`;
-            speakText(combinedText, () => {
-              // After combined speech, navigate and continue with second paragraph
+            // Just speak the current paragraph normally
+            speakText(currentText, () => {
+              // Navigate to next page and start reading the first paragraph
               navigate(`/read/${nextId}`);
+              
+              // Set a flag to auto-start the first paragraph on the next page
               setTimeout(() => {
-                // Continue with paragraph 2 on the new page (index 1)
-                const nodes = contentRef.current?.querySelectorAll('.paragraph');
-                if (nodes && nodes.length > 1) {
-                  setCurrentParagraphIndex(1);
-                  startTextToSpeechFromParagraph(1);
-                }
-              }, 500);
+                updateSettings({ autoStartAfterNavigation: true, currentParagraph: 0 });
+              }, 100);
             });
             return;
           }
@@ -368,7 +364,9 @@ const ReaderView: React.FC = () => {
   }, [paragraphs, settings.speechRate, settings.selectedVoice, settings.autoNavigate, availableVoices, updateSettings, page, navigate, startAutoScroll, stopAutoScroll, applyHighlight]);
 
   const startTextToSpeech = () => {
-    startTextToSpeechFromParagraph(settings.currentParagraph || 0);
+    if (paragraphs.length === 0) return;
+    const index = Math.min(settings.currentParagraph || 0, paragraphs.length - 1);
+    startTextToSpeechFromParagraph(index);
   };
 
   const pauseTextToSpeech = () => {
@@ -451,7 +449,8 @@ const ReaderView: React.FC = () => {
     if (page?.content) {
       const parts = splitIntoParagraphs(page.content);
       setParagraphs(parts);
-      setCurrentParagraphIndex(settings.currentParagraph || 0);
+      const safeIndex = Math.min(settings.currentParagraph || 0, Math.max(0, parts.length - 1));
+      setCurrentParagraphIndex(safeIndex);
     } else {
       setParagraphs([]);
       setCurrentParagraphIndex(0);
