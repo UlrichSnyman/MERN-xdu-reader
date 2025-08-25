@@ -34,7 +34,7 @@ const ReaderView: React.FC = () => {
   const pageIdRef = useRef<string | undefined>(pageId);
   useEffect(() => { pageIdRef.current = pageId; }, [pageId]);
   // Pending auto-start target after seamless continuation
-  const nextAutoStartRef = useRef<{ pageId: string; index: number } | null>(null);
+  // const nextAutoStartRef = useRef<{ pageId: string; index: number } | null>(null);
 
   // Helper to apply highlight immediately (with inline fallback styles)
   const applyHighlight = useCallback((index: number) => {
@@ -62,7 +62,7 @@ const ReaderView: React.FC = () => {
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
   
   // Page cache for preloading (use shared global cache)
-  const [pageCacheVersion, setPageCacheVersion] = useState(0);
+  // const [pageCacheVersion, setPageCacheVersion] = useState(0);
 
   // Admin edit state - changed from modal to inline
   const [isEditing, setIsEditing] = useState(false);
@@ -84,7 +84,7 @@ const ReaderView: React.FC = () => {
   // Cache page data
   const cachePage = (p: Page) => {
     setCachedPage(p);
-    setPageCacheVersion(v => v + 1);
+    // setPageCacheVersion(v => v + 1);
   };
 
   // Ensure work page order is fetched and cached (via worksAPI)
@@ -104,7 +104,7 @@ const ReaderView: React.FC = () => {
   // Prefetch pages by IDs using shared cache
   const prefetchByIds = async (ids: string[]) => {
     await prefetchPages(ids);
-    setPageCacheVersion(v => v + 1);
+    // setPageCacheVersion(v => v + 1);
   };
 
   // Prefetch neighboring pages
@@ -319,7 +319,7 @@ const ReaderView: React.FC = () => {
 
       if (isLast && settings.autoNavigate && page?.navigation?.next) {
         const lastText = currentText.trim();
-        const endsWithTerminator = /[\.!?…]["'”’)]?$/.test(lastText);
+        const endsWithTerminator = /[.!?…]["'”’)]?$/.test(lastText);
         const nextId = page.navigation.next._id;
         let nextPageData = nextId ? getCachedPage(nextId) : undefined;
         if (!nextPageData && nextId) {
@@ -433,7 +433,7 @@ const ReaderView: React.FC = () => {
       const existing = getCachedPage(page._id);
       if (existing) {
         setCachedPage({ ...existing, content: editContent });
-        setPageCacheVersion(v => v + 1);
+        // setPageCacheVersion(v => v + 1);
       }
       setContentVersion(v => v + 1);
       setIsEditing(false);
