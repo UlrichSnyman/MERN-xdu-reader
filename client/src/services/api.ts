@@ -1,6 +1,27 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+function resolveBaseUrl() {
+  const raw = (process.env.REACT_APP_API_URL || '').trim();
+  if (raw) {
+    // Full URL provided
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+    // Handle values like ':5000' or ':5000/api'
+    if (raw.startsWith(':')) {
+      const base = `${window.location.protocol}//${window.location.hostname}${raw}`;
+      return base;
+    }
+    // Handle relative paths like '/api'
+    if (raw.startsWith('/')) {
+      return `${window.location.origin}${raw}`;
+    }
+  }
+  // Default to hosted API
+  return 'https://mern-xdu-reader.onrender.com/api';
+}
+
+const API_BASE_URL = resolveBaseUrl();
 
 // Create axios instance
 const api = axios.create({
