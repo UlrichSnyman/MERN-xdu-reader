@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export interface ReaderSettings {
@@ -42,32 +42,52 @@ export const usePersistedSettings = () => {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        setSettings({ ...defaultSettings, ...parsed });
+        const newSettings = { ...defaultSettings, ...parsed };
+        // Only update if settings have actually changed
+        setSettings(prev => {
+          const hasChanged = Object.keys(newSettings).some(key => 
+            prev[key as keyof ReaderSettings] !== newSettings[key as keyof ReaderSettings]
+          );
+          return hasChanged ? newSettings : prev;
+        });
       } catch (error) {
         console.error('Failed to parse saved settings:', error);
-        setSettings(defaultSettings);
+        setSettings(prev => {
+          const hasChanged = Object.keys(defaultSettings).some(key => 
+            prev[key as keyof ReaderSettings] !== defaultSettings[key as keyof ReaderSettings]
+          );
+          return hasChanged ? defaultSettings : prev;
+        });
       }
     } else {
-      setSettings(defaultSettings);
+      setSettings(prev => {
+        const hasChanged = Object.keys(defaultSettings).some(key => 
+          prev[key as keyof ReaderSettings] !== defaultSettings[key as keyof ReaderSettings]
+        );
+        return hasChanged ? defaultSettings : prev;
+      });
     }
   }, [user]);
 
   // Save settings to localStorage whenever they change
-  const updateSettings = (newSettings: Partial<ReaderSettings>) => {
-    const updatedSettings = { ...settings, ...newSettings };
-    setSettings(updatedSettings);
-    
-    const storageKey = getStorageKey();
-    localStorage.setItem(storageKey, JSON.stringify(updatedSettings));
-  };
+  const updateSettings = useCallback((newSettings: Partial<ReaderSettings>) => {
+    setSettings(prevSettings => {
+      const updatedSettings = { ...prevSettings, ...newSettings };
+      const storageKey = user ? `reader-settings-${user.username}` : 'reader-settings-guest';
+      localStorage.setItem(storageKey, JSON.stringify(updatedSettings));
+      return updatedSettings;
+    });
+  }, [user]);
+
+  const resetSettings = useCallback(() => {
+    setSettings(defaultSettings);
+    const storageKey = user ? `reader-settings-${user.username}` : 'reader-settings-guest';
+    localStorage.removeItem(storageKey);
+  }, [user]);
 
   return {
     settings,
     updateSettings,
-    resetSettings: () => {
-      setSettings(defaultSettings);
-      const storageKey = getStorageKey();
-      localStorage.removeItem(storageKey);
-    }
+    resetSettings
   };
 };
