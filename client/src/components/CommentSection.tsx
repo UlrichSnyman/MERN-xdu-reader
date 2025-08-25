@@ -24,7 +24,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, contentType 
 
   useEffect(() => {
     // Initialize Socket.IO connection
-    const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000');
+    const newSocket = io(process.env.REACT_APP_API_URL || 'https://mern-xdu-reader.onrender.com');
 
     // Join content-specific room
     newSocket.emit('join-content', contentId);

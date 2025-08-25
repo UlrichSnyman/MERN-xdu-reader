@@ -19,7 +19,7 @@ const commentSchema = new mongoose.Schema({
   parentType: {
     type: String,
     required: true,
-    enum: ['Chapter', 'Lore']
+    enum: ['Page', 'Lore']
   }
 }, {
   timestamps: true
