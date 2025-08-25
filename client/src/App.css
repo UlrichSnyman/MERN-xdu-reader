@@ -23,20 +23,20 @@
 }
 
 :root[data-theme="dark"] {
-  --bg-primary: #0a0e13;
-  --bg-secondary: #151922;
-  --bg-tertiary: #1f2937;
-  --bg-quaternary: #374151;
+  --bg-primary: #070a0f;  /* Darker than #0a0e13 */
+  --bg-secondary: #0f1419;  /* Darker than #151922 */
+  --bg-tertiary: #1a212f;  /* Darker than #1f2937 */
+  --bg-quaternary: #2a3441;  /* Darker than #374151 */
   --text-primary: #ffffff;
   --text-secondary: #e5e7eb;
   --text-muted: #9ca3af;
-  --border-color: #374151;
-  --border-accent: #60a5fa;
-  --accent-color: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-glow: #1d4ed8;
-  --success-color: #10b981;
-  --success-hover: #059669;
+  --border-color: #2a3441;  /* Darker */
+  --border-accent: #4a90e2;  /* Darker blue */
+  --accent-color: #2563eb;  /* Darker than #3b82f6 */
+  --accent-hover: #1d4ed8;  /* Darker than #2563eb */
+  --accent-glow: #1e40af;  /* Darker than #1d4ed8 */
+  --success-color: #047857;  /* Darker than #10b981 */
+  --success-hover: #065f46;  /* Darker than #059669 */
   --danger-color: #ef4444;
   --danger-hover: #dc2626;
   --warning-color: #f59e0b;

@@ -11,6 +11,7 @@ const WorkDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPageGroup, setCurrentPageGroup] = useState(1);
+  const [showImageModal, setShowImageModal] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
   const PAGES_PER_GROUP = 20;
@@ -156,7 +157,7 @@ const WorkDetailPage: React.FC = () => {
       <div className="work-header">
         <div className="work-info">
           {work.coverImage && (
-            <div className="work-cover-large">
+            <div className="work-cover-large" onClick={() => setShowImageModal(true)}>
               <img src={work.coverImage} alt={work.title} />
             </div>
           )}
@@ -188,6 +189,15 @@ const WorkDetailPage: React.FC = () => {
                   className="read-btn read-first"
                 >
                   Start Reading
+                </Link>
+              )}
+              {/* Continue button with same functionality as work cards */}
+              {isAuthenticated && (work as any).userProgress?.currentPage && (
+                <Link 
+                  to={`/read/${typeof (work as any).userProgress.currentPage === 'string' ? (work as any).userProgress.currentPage : (work as any).userProgress.currentPage._id}`} 
+                  className="read-btn continue-btn"
+                >
+                  Continue Reading
                 </Link>
               )}
             </div>
@@ -291,6 +301,21 @@ const WorkDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Image Modal */}
+      {showImageModal && work?.coverImage && (
+        <div className="image-modal-overlay" onClick={() => setShowImageModal(false)}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <img src={work.coverImage} alt={work.title} />
+            <button 
+              className="image-modal-close" 
+              onClick={() => setShowImageModal(false)}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
