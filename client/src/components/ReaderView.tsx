@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { pagesAPI, worksAPI } from '../services/api';
-import { Page, ReaderSettings } from '../types';
+import { Page } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { usePersistedSettings } from '../hooks/usePersistedSettings';
 import CommentSection from './CommentSection';
 import RichTextEditor from './RichTextEditor';
 import './ReaderView.css';
@@ -15,13 +16,7 @@ const ReaderView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState<ReaderSettings>({
-    fontSize: 16,
-    fontFamily: 'default',
-    isPlaying: false,
-    speechRate: 1.0,
-    selectedVoice: '',
-  });
+  const { settings, updateSettings } = usePersistedSettings();
   const { isAuthenticated, user } = useAuth();
   
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -73,7 +68,7 @@ const ReaderView: React.FC = () => {
         const voices = speechSynthesis.getVoices();
         setAvailableVoices(voices);
         if (voices.length > 0 && !settings.selectedVoice) {
-          setSettings(prev => ({ ...prev, selectedVoice: voices[0].name }));
+          updateSettings({ selectedVoice: voices[0].name });
         }
       }
     };
@@ -89,23 +84,6 @@ const ReaderView: React.FC = () => {
       }
     };
   }, [settings.selectedVoice]);
-
-  // Load settings from localStorage
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('readerSettings');
-    if (savedSettings) {
-      try {
-        setSettings(JSON.parse(savedSettings));
-      } catch (error) {
-        console.error('Error loading saved settings:', error);
-      }
-    }
-  }, []);
-
-  // Save settings to localStorage
-  useEffect(() => {
-    localStorage.setItem('readerSettings', JSON.stringify(settings));
-  }, [settings]);
 
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;
@@ -126,15 +104,15 @@ const ReaderView: React.FC = () => {
       }
       
       utterance.onstart = () => {
-        setSettings(prev => ({ ...prev, isPlaying: true }));
+        updateSettings({ isPlaying: true });
       };
       
       utterance.onend = () => {
-        setSettings(prev => ({ ...prev, isPlaying: false }));
+        updateSettings({ isPlaying: false });
       };
       
       utterance.onerror = () => {
-        setSettings(prev => ({ ...prev, isPlaying: false }));
+        updateSettings({ isPlaying: false });
       };
       
       speechRef.current = utterance;
@@ -147,7 +125,7 @@ const ReaderView: React.FC = () => {
   const stopTextToSpeech = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      setSettings(prev => ({ ...prev, isPlaying: false }));
+      updateSettings({ isPlaying: false });
     }
   };
 
@@ -237,7 +215,7 @@ const ReaderView: React.FC = () => {
                 max="24"
                 step="2"
                 value={settings.fontSize}
-                onChange={(e) => setSettings(prev => ({ ...prev, fontSize: parseInt(e.target.value) }))}
+                onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
               />
               <div className="slider-labels">
                 <span>12px</span>
@@ -257,8 +235,8 @@ const ReaderView: React.FC = () => {
                 {['default', 'dyslexic', 'roboto', 'lora'].map(font => (
                   <button
                     key={font}
-                    className={settings.fontFamily === font ? 'active' : ''}
-                    onClick={() => setSettings(prev => ({ ...prev, fontFamily: font }))}
+                    className={`font-button ${settings.fontFamily === font ? 'active' : ''}`}
+                    onClick={() => updateSettings({ fontFamily: font })}
                   >
                     {font.charAt(0).toUpperCase() + font.slice(1)}
                   </button>
@@ -275,7 +253,7 @@ const ReaderView: React.FC = () => {
                   <label>Voice:</label>
                   <select
                     value={settings.selectedVoice}
-                    onChange={(e) => setSettings(prev => ({ ...prev, selectedVoice: e.target.value }))}
+                    onChange={(e) => updateSettings({ selectedVoice: e.target.value })}
                     className="voice-select"
                   >
                     {availableVoices.map((voice) => (
@@ -301,7 +279,7 @@ const ReaderView: React.FC = () => {
                     max="3"
                     step="0.2"
                     value={settings.speechRate}
-                    onChange={(e) => setSettings(prev => ({ ...prev, speechRate: parseFloat(e.target.value) }))}
+                    onChange={(e) => updateSettings({ speechRate: parseFloat(e.target.value) })}
                   />
                   <div className="slider-labels">
                     <span>0.6x</span>
