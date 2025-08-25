@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { loreAPI } from '../services/api';
 import { Lore } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useCyclingBackground } from '../hooks/useCyclingBackground';
 import './LoreLibrary.css';
 
 const LoreLibrary: React.FC = () => {
@@ -11,6 +12,7 @@ const LoreLibrary: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const { isAuthenticated } = useAuth();
+  const backgroundImage = useCyclingBackground();
 
   const categories = ['worldbuilding', 'characters', 'history', 'locations', 'general'];
 
@@ -80,7 +82,12 @@ const LoreLibrary: React.FC = () => {
   }
 
   return (
-    <div className="lore-library">
+    <div 
+      className={`lore-library ${backgroundImage ? 'with-cycling-bg' : ''}`}
+      style={backgroundImage ? {
+        '--cycling-bg': `url(${backgroundImage})`
+      } as React.CSSProperties : {}}
+    >
       <div className="hero-section">
         <h1>Lore Library</h1>
         <p>Discover the rich world and characters behind the stories</p>

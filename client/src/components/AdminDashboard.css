@@ -272,6 +272,12 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
+
+  .work-actions {
+    align-self: stretch;
+    justify-content: space-evenly;
+    margin-top: 0.5rem;
+  }
 }
 
 /* Create Content Tab Styles */
@@ -543,6 +549,11 @@
   transition: background 0.2s ease;
   font-weight: 500;
   clip-path: polygon(15% 0, 100% 0, 85% 100%, 0% 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
 }
 
 .edit-btn:hover {
@@ -560,6 +571,11 @@
   transition: background 0.2s ease;
   font-weight: 500;
   clip-path: polygon(0% 0, 85% 0, 100% 100%, 15% 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
 }
 
 .delete-btn:hover {

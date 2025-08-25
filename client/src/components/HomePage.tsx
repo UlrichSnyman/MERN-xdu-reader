@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { worksAPI } from '../services/api';
 import { Work } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useCyclingBackground } from '../hooks/useCyclingBackground';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
@@ -11,6 +12,7 @@ const HomePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
   const [resumeMap, setResumeMap] = useState<Record<string, string>>({});
+  const backgroundImage = useCyclingBackground();
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -101,7 +103,12 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="homepage">
+    <div 
+      className={`homepage ${backgroundImage ? 'with-cycling-bg' : ''}`}
+      style={backgroundImage ? {
+        '--cycling-bg': `url(${backgroundImage})`
+      } as React.CSSProperties : {}}
+    >
       <div className="hero-section">
         <h1>Welcome to the Literary Collection</h1>
         <p>Discover captivating stories and immerse yourself in rich narratives</p>

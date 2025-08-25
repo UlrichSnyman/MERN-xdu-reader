@@ -135,7 +135,12 @@ const WorkDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="work-detail-page">
+    <div 
+      className={`work-detail-page ${work.coverImage ? 'with-cover' : ''}`}
+      style={work.coverImage ? {
+        '--cover-bg': `url(${work.coverImage})`
+      } as React.CSSProperties : {}}
+    >
       <Link to="/" className="back-link">← Back to Library</Link>
       
       <div className="work-header">

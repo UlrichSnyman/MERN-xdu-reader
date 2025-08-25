@@ -26,9 +26,9 @@ const createComment = async (req, res) => {
       });
     }
     
-    if (!['Chapter', 'Lore'].includes(parentType)) {
+    if (!['Page', 'Lore'].includes(parentType)) {
       return res.status(400).json({ 
-        error: 'Parent type must be either "Chapter" or "Lore"' 
+        error: 'Parent type must be either "Page" or "Lore"' 
       });
     }
     
