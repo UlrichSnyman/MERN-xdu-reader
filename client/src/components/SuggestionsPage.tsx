@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { suggestionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useCyclingBackground } from '../hooks/useCyclingBackground';
 import './SuggestionsPage.css';
 
 const SuggestionsPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const backgroundImage = useCyclingBackground();
   const [formData, setFormData] = useState({
     content: '',
     authorName: '',
@@ -71,7 +73,12 @@ const SuggestionsPage: React.FC = () => {
   }
 
   return (
-    <div className="suggestions-page">
+    <div 
+      className={`suggestions-page ${backgroundImage ? 'with-cycling-bg' : ''}`}
+      style={backgroundImage ? {
+        '--cycling-bg': `url(${backgroundImage})`
+      } as React.CSSProperties : {}}
+    >
       <div className="suggestions-header">
         <h1>Share Your Suggestions</h1>
         <p>We value your feedback and ideas to improve our literary collection.</p>

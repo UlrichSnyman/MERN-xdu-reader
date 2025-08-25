@@ -3,6 +3,25 @@
   margin: 0 auto;
   padding: 1.5rem 1rem;
   background-color: var(--bg-primary);
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Add cycling background for homepage */
+.homepage.with-cycling-bg::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: var(--cycling-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+  z-index: -1;
+  transition: background-image 1s ease-in-out;
 }
 
 .hero-section {
@@ -121,11 +140,6 @@
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   font-size: 0.9rem;
 }
 
