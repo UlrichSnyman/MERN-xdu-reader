@@ -16,8 +16,9 @@ import './App.css';
 
 function AppRoutes() {
   const location = useLocation();
+  const topLevelKey = (location.pathname.split('/')[1] || '/');
   return (
-    <Routes key={location.pathname}>
+    <Routes key={topLevelKey}>
       <Route path="/" element={<HomePage />} />
       <Route path="/work/:id" element={<WorkDetailPage />} />
       <Route path="/read/:pageId" element={<ReaderView />} />

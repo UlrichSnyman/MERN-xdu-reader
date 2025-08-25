@@ -3,11 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { pagesAPI, worksAPI } from '../services/api';
 import { Page } from '../types';
+import { getCachedPage, setCachedPage, prefetchPages } from '../services/pageCache';
 import { useAuth } from '../context/AuthContext';
 import { usePersistedSettings } from '../hooks/usePersistedSettings';
 import CommentSection from './CommentSection';
 import RichTextEditor from './RichTextEditor';
 import './ReaderView.css';
+import api from '../services/api';
 
 const ReaderView: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>();
@@ -29,12 +31,16 @@ const ReaderView: React.FC = () => {
   const [paragraphs, setParagraphs] = useState<string[]>([]);
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
   
-  // Page cache for preloading
-  const [pageCache, setPageCache] = useState<Map<string, Page>>(new Map());
+  // Page cache for preloading (use shared global cache)
+  const [pageCacheVersion, setPageCacheVersion] = useState(0);
 
   // Admin edit state - changed from modal to inline
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
+
+  // Versioning state to force re-rendering of ReactMarkdown
+  const [contentVersion, setContentVersion] = useState(0);
+  const [workPagesOrder, setWorkPagesOrder] = useState<Record<string, string[]>>({});
 
   // Utility function to split content into paragraphs
   const splitIntoParagraphs = (content: string): string[] => {
@@ -45,40 +51,52 @@ const ReaderView: React.FC = () => {
       .filter(p => p.length > 0);
   };
 
-  // Preload adjacent pages
-  const preloadPage = useCallback(async (pageId: string) => {
-    if (pageCache.has(pageId)) return pageCache.get(pageId);
-    
+  // Cache page data
+  const cachePage = (p: Page) => {
+    setCachedPage(p);
+    setPageCacheVersion(v => v + 1);
+  };
+
+  // Ensure work page order is fetched and cached (via worksAPI)
+  const ensureWorkOrder = async (workId: string) => {
+    if (workPagesOrder[workId]) return workPagesOrder[workId];
     try {
-      const response = await pagesAPI.getById(pageId);
-      const pageData = response.data;
-      setPageCache(prev => new Map(prev).set(pageId, pageData));
-      return pageData;
-    } catch (err) {
-      console.error('Failed to preload page:', pageId, err);
-      return null;
+      const resp = await worksAPI.getById(workId);
+      const list = Array.isArray(resp.data?.pages) ? resp.data.pages : [];
+      const order = list.map((pg: any) => (typeof pg === 'string' ? pg : pg._id));
+      setWorkPagesOrder(prev => ({ ...prev, [workId]: order }));
+      return order;
+    } catch (e) {
+      return [] as string[];
     }
-  }, [pageCache]);
+  };
 
-  const preloadAdjacentPages = useCallback(async (currentPage: Page) => {
-    const preloadPromises = [];
-    
-    if (currentPage.navigation?.next) {
-      preloadPromises.push(preloadPage(currentPage.navigation.next._id));
-    }
-    
-    if (currentPage.navigation?.previous) {
-      preloadPromises.push(preloadPage(currentPage.navigation.previous._id));
-    }
-    
-    await Promise.all(preloadPromises);
-  }, [preloadPage]);
+  // Prefetch pages by IDs using shared cache
+  const prefetchByIds = async (ids: string[]) => {
+    await prefetchPages(ids);
+    setPageCacheVersion(v => v + 1);
+  };
 
-  const navigatePage = useCallback((direction: 'previous' | 'next') => {
+  // Prefetch neighboring pages
+  const prefetchNeighbors = async (workId: string, currentId: string) => {
+    const order = await ensureWorkOrder(workId);
+    if (!order || order.length === 0) return;
+    const idx = order.indexOf(currentId);
+    if (idx === -1) return;
+    const candidates = [idx - 2, idx - 1, idx + 1, idx + 2]
+      .filter(i => i >= 0 && i < order.length)
+      .map(i => order[i]);
+    await prefetchByIds(candidates);
+  };
+
+  const navigatePage = useCallback(async (direction: 'previous' | 'next') => {
     if (!page?.navigation) return;
-    
+
     const targetPage = page.navigation[direction];
     if (targetPage) {
+      if (!getCachedPage(targetPage._id)) {
+        await prefetchByIds([targetPage._id]);
+      }
       navigate(`/read/${targetPage._id}`);
     }
   }, [page, navigate]);
@@ -87,47 +105,38 @@ const ReaderView: React.FC = () => {
     const fetchPage = async () => {
       if (!pageId) return;
 
-      // Reset and cleanup on route change
-      setLoading(true);
+      // Cleanup on route change
       setError(null);
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
       setIsEditing(false);
       window.scrollTo({ top: 0, behavior: 'auto' });
-      
+
+      const cached = getCachedPage(pageId);
+
+      if (cached) {
+        setPage(cached);
+        setContentVersion(v => v + 1);
+        setLoading(false);
+        const workId = typeof cached.work === 'string' ? cached.work : (cached.work as any)._id;
+        if (workId) {
+          prefetchNeighbors(workId, cached._id);
+        }
+      } else {
+        setLoading(true);
+      }
+
       try {
-        // Try to get from cache first
-        let pageData = pageCache.get(pageId);
-        
-        if (!pageData) {
-          const response = await pagesAPI.getById(pageId);
-          pageData = response.data;
-          setPageCache(prev => new Map(prev).set(pageId, pageData!));
+        const response = await pagesAPI.getById(pageId);
+        setPage(response.data);
+        cachePage(response.data);
+        setContentVersion(v => v + 1);
+
+        const workId = typeof response.data.work === 'string' ? response.data.work : (response.data.work as any)._id;
+        if (workId) {
+          prefetchNeighbors(workId, response.data._id);
         }
-        
-        setPage(pageData!);
-        
-        // Split content into paragraphs
-        const pageParagraphs = splitIntoParagraphs(pageData!.content);
-        setParagraphs(pageParagraphs);
-        
-        // Reset current paragraph or use saved position
-        const startParagraph = settings.autoStartAfterNavigation ? settings.currentParagraph : 0;
-        setCurrentParagraphIndex(startParagraph);
-        
-        // Auto-start TTS if coming from navigation
-        if (settings.autoStartAfterNavigation && pageParagraphs.length > 0) {
-          updateSettings({ autoStartAfterNavigation: false });
-          // Small delay to ensure page is rendered
-          setTimeout(() => {
-            startTextToSpeechFromParagraph(startParagraph);
-          }, 500);
-        }
-        
-        // Preload adjacent pages in the background
-        preloadAdjacentPages(pageData!);
-        
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load page');
       } finally {
@@ -322,8 +331,14 @@ const ReaderView: React.FC = () => {
   const refreshPage = async () => {
     if (!pageId) return;
     try {
-      const response = await pagesAPI.getById(pageId);
+      const response = await api.get(`/pages/${pageId}`, { params: { _: Date.now() } });
       setPage(response.data);
+      cachePage(response.data);
+      setContentVersion(v => v + 1);
+
+      // After refresh, re-prefetch neighbors in case order changed
+      const workId = typeof response.data.work === 'string' ? response.data.work : (response.data.work as any)._id;
+      if (workId) prefetchNeighbors(workId, response.data._id);
     } catch (err) {
       console.error('Failed to refresh page', err);
     }
@@ -344,15 +359,22 @@ const ReaderView: React.FC = () => {
     if (!page) return;
     try {
       await pagesAPI.update(page._id, { content: editContent });
+      setPage(prev => prev ? { ...prev, content: editContent } as any : prev);
+      const existing = getCachedPage(page._id);
+      if (existing) {
+        setCachedPage({ ...existing, content: editContent });
+        setPageCacheVersion(v => v + 1);
+      }
+      setContentVersion(v => v + 1);
       setIsEditing(false);
-      await refreshPage();
+      refreshPage();
     } catch (err: any) {
       console.error('Failed to save page content:', err);
       alert(err.response?.data?.error || 'Failed to save');
     }
   };
 
-  if (loading) {
+  if (loading && !(pageId && getCachedPage(pageId))) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -380,7 +402,7 @@ const ReaderView: React.FC = () => {
   } as React.CSSProperties;
 
   return (
-    <div className="reader-view" key={pageId}>
+    <div className="reader-view">
       {/* Settings Panel */}
       {showSettings && (
         <div className="settings-overlay" onClick={() => setShowSettings(false)}>
@@ -559,28 +581,16 @@ const ReaderView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="paragraph-container">
-            {paragraphs.map((paragraph, index) => (
-              <div
-                key={index}
-                className={`paragraph ${
-                  settings.isPlaying && index === currentParagraphIndex 
-                    ? 'current-paragraph' 
-                    : ''
-                }`}
-              >
-                <ReactMarkdown>
-                  {paragraph}
-                </ReactMarkdown>
-              </div>
-            ))}
-          </div>
+          <ReactMarkdown key={contentVersion}>
+            {page.content}
+          </ReactMarkdown>
         )}
       </div>
 
       {/* Side Arrow Navigation */}
       {page.navigation?.previous && (
         <button
+          onMouseEnter={() => page.navigation?.previous && prefetchByIds([page.navigation.previous._id])}
           onClick={() => navigatePage('previous')}
           className="nav-arrow nav-arrow-left"
           aria-label="Previous Page"
@@ -591,6 +601,7 @@ const ReaderView: React.FC = () => {
       
       {page.navigation?.next && (
         <button
+          onMouseEnter={() => page.navigation?.next && prefetchByIds([page.navigation.next._id])}
           onClick={() => navigatePage('next')}
           className="nav-arrow nav-arrow-right"
           aria-label="Next Page"
