@@ -14,6 +14,7 @@
   --danger-color: #e53e3e;
   --danger-hover: #c53030;
   --warning-color: #dd6b20;
+  --warning-hover: #c05621;
   --overlay-bg: rgba(26, 54, 93, 0.8);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -39,6 +40,7 @@
   --danger-color: #ef4444;
   --danger-hover: #dc2626;
   --warning-color: #f59e0b;
+  --warning-hover: #d97706;
   --overlay-bg: rgba(10, 14, 19, 0.95);
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.6);

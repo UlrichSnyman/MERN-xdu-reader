@@ -7,6 +7,8 @@ export interface ReaderSettings {
   isPlaying: boolean;
   speechRate: number;
   selectedVoice: string;
+  autoNavigate: boolean;
+  autoScroll: boolean;
 }
 
 const defaultSettings: ReaderSettings = {
@@ -15,6 +17,8 @@ const defaultSettings: ReaderSettings = {
   isPlaying: false,
   speechRate: 1.0,
   selectedVoice: '',
+  autoNavigate: true,
+  autoScroll: true,
 };
 
 export const usePersistedSettings = () => {
