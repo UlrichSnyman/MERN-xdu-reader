@@ -670,12 +670,7 @@
 }
 
 .paragraph.current-paragraph {
-  background: linear-gradient(135deg, 
-    rgba(64, 224, 208, 0.15) 0%, 
-    rgba(100, 149, 237, 0.15) 100%);
-  border: 2px solid var(--accent-color);
-  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
-  transform: translateY(-2px);
+  background: rgba(128, 128, 128, 0.2); /* Simple grey background to match inline styles */
 }
 
 .paragraph.current-paragraph::before {

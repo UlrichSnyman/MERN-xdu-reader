@@ -26,6 +26,7 @@ const ReaderView: React.FC = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const wakeLockRef = useRef<any>(null); // Wake lock reference for screen active
   // During seamless cross-page continuation, keep speaking through navigation
   const seamlessRef = useRef(false);
   // Buffer next page while seamlessly speaking to avoid visual jump
@@ -45,8 +46,8 @@ const ReaderView: React.FC = () => {
       el.classList.toggle('current-paragraph', active);
       if (active) {
         el.setAttribute('data-current', 'true');
-        el.style.outline = '2px solid var(--accent-color)';
-        el.style.background = 'linear-gradient(135deg, rgba(64,224,208,0.18) 0%, rgba(100,149,237,0.18) 100%)';
+        el.style.outline = '';
+        el.style.background = 'rgba(128, 128, 128, 0.2)'; // Simple grey background
         // Force reflow to ensure styles paint immediately
         void el.offsetHeight;
       } else {
@@ -55,6 +56,26 @@ const ReaderView: React.FC = () => {
         el.style.background = '';
       }
     });
+  }, []);
+
+  // Wake lock functions to keep screen active during TTS
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        console.log('Wake lock acquired');
+      }
+    } catch (err) {
+      console.log('Wake lock request failed:', err);
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+      console.log('Wake lock released');
+    }
   }, []);
 
   // State for paragraph-based TTS
@@ -300,15 +321,18 @@ const ReaderView: React.FC = () => {
         utterance.onstart = () => {
           updateSettings({ isPlaying: true });
           startAutoScroll();
+          requestWakeLock(); // Keep screen active during TTS
         };
         utterance.onend = () => {
           updateSettings({ isPlaying: false });
           stopAutoScroll();
+          releaseWakeLock(); // Release wake lock when TTS ends
           if (onDone) onDone();
         };
         utterance.onerror = () => {
           updateSettings({ isPlaying: false });
           stopAutoScroll();
+          releaseWakeLock(); // Release wake lock on error
         };
         speechRef.current = utterance;
         window.speechSynthesis.speak(utterance);
@@ -361,11 +385,12 @@ const ReaderView: React.FC = () => {
     } else {
       alert('Text-to-speech is not supported in your browser.');
     }
-  }, [paragraphs, settings.speechRate, settings.selectedVoice, settings.autoNavigate, availableVoices, updateSettings, page, navigate, startAutoScroll, stopAutoScroll, applyHighlight]);
+  }, [paragraphs, settings.speechRate, settings.selectedVoice, settings.autoNavigate, availableVoices, updateSettings, page, navigate, startAutoScroll, stopAutoScroll, applyHighlight, requestWakeLock, releaseWakeLock]);
 
   const startTextToSpeech = () => {
     if (paragraphs.length === 0) return;
     const index = Math.min(settings.currentParagraph || 0, paragraphs.length - 1);
+    requestWakeLock(); // Keep screen active during TTS
     startTextToSpeechFromParagraph(index);
   };
 
@@ -374,6 +399,7 @@ const ReaderView: React.FC = () => {
       window.speechSynthesis.pause();
       updateSettings({ isPlaying: false });
       stopAutoScroll();
+      releaseWakeLock(); // Release wake lock when pausing
     }
   };
 
@@ -382,6 +408,7 @@ const ReaderView: React.FC = () => {
       window.speechSynthesis.resume();
       updateSettings({ isPlaying: true });
       startAutoScroll();
+      requestWakeLock(); // Re-acquire wake lock when resuming
     }
   };
 
@@ -391,6 +418,7 @@ const ReaderView: React.FC = () => {
       updateSettings({ isPlaying: false, currentParagraph: 0 });
       stopAutoScroll();
       setCurrentParagraphIndex(0);
+      releaseWakeLock(); // Release wake lock when stopping
       // Reset scroll position
       if (contentRef.current) {
         contentRef.current.scrollTop = 0;
@@ -505,6 +533,13 @@ const ReaderView: React.FC = () => {
       setTimeout(() => applyHighlight(currentParagraphIndex), 0);
     }
   }, [showSettings, settings.isPlaying, currentParagraphIndex, applyHighlight]);
+
+  // Cleanup wake lock on unmount
+  useEffect(() => {
+    return () => {
+      releaseWakeLock();
+    };
+  }, [releaseWakeLock]);
 
   if (loading && !(pageId && getCachedPage(pageId))) {
     return (
@@ -699,7 +734,12 @@ const ReaderView: React.FC = () => {
         </div>
       </div>
 
-      <div className="reader-content" ref={contentRef} style={contentStyle}>
+      <div 
+        className="reader-content" 
+        ref={contentRef} 
+        style={contentStyle}
+        onClick={() => setShowSettings(!showSettings)}
+      >
         {isEditing ? (
           <div className="inline-editor">
             <RichTextEditor
