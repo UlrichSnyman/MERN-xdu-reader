@@ -8,6 +8,10 @@
 }
 
 /* Add cycling background for homepage */
+.homepage.with-cycling-bg {
+  background-color: transparent;
+}
+
 .homepage.with-cycling-bg::before {
   content: '';
   position: fixed;
@@ -15,11 +19,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: var(--cycling-bg);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), var(--cycling-bg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.1;
+  opacity: 1;
+  filter: blur(4px) saturate(1.05);
   z-index: -1;
   transition: background-image 1s ease-in-out;
 }
@@ -82,6 +87,8 @@
   position: relative;
   clip-path: none;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
 }
 
 .work-card:hover {
@@ -115,6 +122,9 @@
 
 .work-content {
   padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
 }
 
 .work-content h3 {
@@ -136,11 +146,26 @@
   font-weight: 500;
 }
 
+.work-card .work-synopsis {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* show up to 3 lines */
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: calc(1.6em * 3);
+  min-height: calc(1.6em * 3); /* reserve space so cards align */
+}
+
 .work-synopsis {
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  /* unclamped for overview/full views */
 }
 
 .work-actions {
@@ -150,6 +175,7 @@
   margin-bottom: 1rem;
   gap: 0.5rem;
   flex-wrap: wrap;
+  margin-top: auto; /* pin actions to bottom for equal card heights */
 }
 
 /* Glassy parallelogram buttons (dashboard-inspired) */
@@ -245,7 +271,6 @@
   text-align: center;
   min-width: 70px;
   border-radius: 0; /* square corners for puzzle-piece shape */
-  /* clip-path removed to rely on global shape in App.css */
 }
 
 .work-card .like-btn:hover:not(:disabled) {

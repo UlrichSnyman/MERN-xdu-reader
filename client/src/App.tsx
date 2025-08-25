@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
@@ -14,34 +14,39 @@ import AdminDashboard from './components/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
+function AppRoutes() {
+  const location = useLocation();
+  return (
+    <Routes key={location.pathname}>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/work/:id" element={<WorkDetailPage />} />
+      <Route path="/read/:pageId" element={<ReaderView />} />
+      <Route path="/lore" element={<LoreLibrary />} />
+      <Route path="/lore/:id" element={<LoreDetailPage />} />
+      <Route path="/suggestions" element={<SuggestionsPage />} />
+      <Route path="/login" element={<LoginForm />} />
+      <Route 
+        path="/admin/dashboard" 
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } 
+      />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <div className="App">
-            <Navbar />
-            <main className="main-content">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/work/:id" element={<WorkDetailPage />} />
-                <Route path="/read/:pageId" element={<ReaderView />} />
-                <Route path="/lore" element={<LoreLibrary />} />
-                <Route path="/lore/:id" element={<LoreDetailPage />} />
-                <Route path="/suggestions" element={<SuggestionsPage />} />
-                <Route path="/login" element={<LoginForm />} />
-                <Route 
-                  path="/admin/dashboard" 
-                  element={
-                    <ProtectedRoute requireAdmin={true}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-              </Routes>
-            </main>
-          </div>
-        </Router>
+        <div className="App">
+          <Navbar />
+          <main className="main-content">
+            <AppRoutes />
+          </main>
+        </div>
       </AuthProvider>
     </ThemeProvider>
   );

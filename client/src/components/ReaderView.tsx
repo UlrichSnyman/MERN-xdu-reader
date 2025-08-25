@@ -31,6 +31,15 @@ const ReaderView: React.FC = () => {
   useEffect(() => {
     const fetchPage = async () => {
       if (!pageId) return;
+
+      // Reset and cleanup on route change
+      setLoading(true);
+      setError(null);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'auto' });
       
       try {
         const response = await pagesAPI.getById(pageId);
@@ -43,6 +52,17 @@ const ReaderView: React.FC = () => {
     };
 
     fetchPage();
+  }, [pageId]);
+
+  // Ensure view updates cleanly when the route (pageId) changes
+  useEffect(() => {
+    // Stop any ongoing TTS, exit edit mode, and scroll to top
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsEditing(false);
+    setEditContent('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pageId]);
 
   // Track reading progress when page loads
@@ -61,29 +81,33 @@ const ReaderView: React.FC = () => {
     trackProgress();
   }, [page, pageId, isAuthenticated]);
 
+  // Load available voices once and subscribe to voiceschanged
   useEffect(() => {
-    // Load available voices
     const loadVoices = () => {
       if ('speechSynthesis' in window) {
-        const voices = speechSynthesis.getVoices();
+        const voices = window.speechSynthesis.getVoices();
         setAvailableVoices(voices);
-        if (voices.length > 0 && !settings.selectedVoice) {
-          updateSettings({ selectedVoice: voices[0].name });
-        }
       }
     };
 
     loadVoices();
     if ('speechSynthesis' in window) {
-      speechSynthesis.onvoiceschanged = loadVoices;
+      window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
     return () => {
       if ('speechSynthesis' in window) {
-        speechSynthesis.onvoiceschanged = null;
+        window.speechSynthesis.onvoiceschanged = null;
       }
     };
-  }, [settings.selectedVoice, updateSettings]);
+  }, []);
+
+  // Pick a default voice once voices are available and none is selected yet
+  useEffect(() => {
+    if (availableVoices.length > 0 && !settings.selectedVoice) {
+      updateSettings({ selectedVoice: availableVoices[0].name });
+    }
+  }, [availableVoices, settings.selectedVoice, updateSettings]);
 
   const startTextToSpeech = () => {
     if (!page || !contentRef.current) return;
@@ -199,7 +223,7 @@ const ReaderView: React.FC = () => {
   } as React.CSSProperties;
 
   return (
-    <div className="reader-view">
+    <div className="reader-view" key={pageId}>
       {/* Settings Panel */}
       {showSettings && (
         <div className="settings-overlay" onClick={() => setShowSettings(false)}>

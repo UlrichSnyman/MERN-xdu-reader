@@ -8,6 +8,10 @@
 }
 
 /* Add cycling background for lore library */
+.lore-library.with-cycling-bg {
+  background-color: transparent;
+}
+
 .lore-library.with-cycling-bg::before {
   content: '';
   position: fixed;
@@ -15,11 +19,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: var(--cycling-bg);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), var(--cycling-bg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.1;
+  opacity: 1;
+  filter: blur(4px) saturate(1.05);
   z-index: -1;
   transition: background-image 1s ease-in-out;
 }
