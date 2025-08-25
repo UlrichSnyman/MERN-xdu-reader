@@ -6,6 +6,7 @@ import { Page } from '../types';
 import { getCachedPage, setCachedPage, prefetchPages } from '../services/pageCache';
 import { useAuth } from '../context/AuthContext';
 import { usePersistedSettings } from '../hooks/usePersistedSettings';
+import { useRotatingLoadingMessage } from '../hooks/useRotatingLoadingMessage';
 import CommentSection from './CommentSection';
 import RichTextEditor from './RichTextEditor';
 import './ReaderView.css';
@@ -22,6 +23,15 @@ const ReaderView: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  
+  // Rotating loading message
+  const loadingMessage = useRotatingLoadingMessage([
+    'Loading page...',
+    'Fetching content...',
+    'Preparing reader...',
+    'Almost ready...',
+    'Loading resources...'
+  ]);
   
   const contentRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -545,7 +555,7 @@ const ReaderView: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading page...</p>
+        <p>{loadingMessage}</p>
       </div>
     );
   }

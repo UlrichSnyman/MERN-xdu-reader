@@ -4,6 +4,7 @@ import { worksAPI } from '../services/api';
 import { Work } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useCyclingBackground } from '../hooks/useCyclingBackground';
+import { useRotatingLoadingMessage } from '../hooks/useRotatingLoadingMessage';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
@@ -13,6 +14,15 @@ const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [resumeMap, setResumeMap] = useState<Record<string, string>>({});
   const backgroundImage = useCyclingBackground();
+  
+  // Rotating loading message for homepage
+  const loadingMessage = useRotatingLoadingMessage([
+    'Loading literary works...',
+    'Discovering stories...',
+    'Gathering tales...',
+    'Preparing library...',
+    'Fetching content...'
+  ]);
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -88,7 +98,7 @@ const HomePage: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading literary works...</p>
+        <p>{loadingMessage}</p>
       </div>
     );
   }
