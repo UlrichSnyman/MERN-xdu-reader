@@ -2,26 +2,36 @@ import axios from 'axios';
 
 function resolveBaseUrl() {
   const raw = (process.env.REACT_APP_API_URL || '').trim();
+  console.log('Environment REACT_APP_API_URL:', raw); // Debug log
+  
   if (raw) {
     // Full URL provided
     if (/^https?:\/\//i.test(raw)) {
+      console.log('Using full URL from env:', raw); // Debug log
       return raw;
     }
     // Handle values like ':5000' or ':5000/api'
     if (raw.startsWith(':')) {
       const base = `${window.location.protocol}//${window.location.hostname}${raw}`;
+      console.log('Using port-based URL:', base); // Debug log
       return base;
     }
     // Handle relative paths like '/api'
     if (raw.startsWith('/')) {
-      return `${window.location.origin}${raw}`;
+      const relativeUrl = `${window.location.origin}${raw}`;
+      console.log('Using relative URL:', relativeUrl); // Debug log
+      return relativeUrl;
     }
   }
   // Default to hosted API
-  return 'https://mern-xdu-reader.onrender.com/api';
+  const defaultUrl = 'https://mern-xdu-reader.onrender.com/api';
+  console.log('Using default URL:', defaultUrl); // Debug log
+  return defaultUrl;
 }
 
 const API_BASE_URL = resolveBaseUrl();
+
+console.log('API Base URL:', API_BASE_URL); // Debug log
 
 // Create axios instance
 const api = axios.create({
@@ -34,6 +44,7 @@ const api = axios.create({
 // Add token to requests if available
 api.interceptors.request.use(
   (config) => {
+    console.log('Making API request to:', (config.baseURL || '') + (config.url || '')); // Debug log
     const token = localStorage.getItem('authToken');
     if (token) {
       (config.headers as any).Authorization = `Bearer ${token}`;
@@ -41,6 +52,19 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error); // Debug log
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.data); // Debug log
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error.response?.status, error.response?.data, 'URL:', error.config?.url); // Debug log
     return Promise.reject(error);
   }
 );
