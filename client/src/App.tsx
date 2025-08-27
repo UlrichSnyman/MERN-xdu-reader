@@ -8,7 +8,6 @@ import WorkDetailPage from './components/WorkDetailPage';
 import ReaderView from './components/ReaderView';
 import LoreLibrary from './components/LoreLibrary';
 import LoreDetailPage from './components/LoreDetailPage';
-import LoreReader from './components/LoreReader';
 import SuggestionsPage from './components/SuggestionsPage';
 import LoginForm from './components/LoginForm';
 import AdminDashboard from './components/AdminDashboard';
@@ -17,15 +16,13 @@ import './App.css';
 
 function AppRoutes() {
   const location = useLocation();
-  const topLevelKey = (location.pathname.split('/')[1] || '/');
   return (
-    <Routes key={topLevelKey}>
+    <Routes key={location.pathname}>
       <Route path="/" element={<HomePage />} />
       <Route path="/work/:id" element={<WorkDetailPage />} />
       <Route path="/read/:pageId" element={<ReaderView />} />
       <Route path="/lore" element={<LoreLibrary />} />
       <Route path="/lore/:id" element={<LoreDetailPage />} />
-      <Route path="/lore/read/:loreId" element={<LoreReader />} />
       <Route path="/suggestions" element={<SuggestionsPage />} />
       <Route path="/login" element={<LoginForm />} />
       <Route 
