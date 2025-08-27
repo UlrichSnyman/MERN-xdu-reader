@@ -134,12 +134,11 @@
   color: white;
   border: none;
   padding: 1rem;
-  border-radius: 0; /* Sharp angles to match theme */
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   font-size: 1rem;
   transition: background-color 0.3s ease, transform 0.1s ease;
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); /* Subtle geometric shape */
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -178,11 +177,10 @@
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
-  border-radius: 0; /* Sharp angles to match theme */
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.3s ease;
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); /* Subtle geometric shape */
 }
 
 .submit-another-btn:hover {

@@ -330,6 +330,15 @@
   font-weight: 500;
 }
 
+/* Ensure speed control slider uses full available width */
+.speed-control input[type="range"] {
+  width: 100% !important;
+  min-width: 250px;
+  box-sizing: border-box;
+  clip-path: none !important; /* Remove geometric clipping for speed control */
+  border-radius: 3px; /* Add simple rounded corners instead */
+}
+
 .close-settings {
   background: var(--accent-color);
   color: white;
@@ -675,6 +684,11 @@
   
   .font-buttons {
     grid-template-columns: 1fr;
+  }
+  
+  /* Ensure speed control is properly sized on very small screens */
+  .speed-control input[type="range"] {
+    min-width: 200px !important;
   }
 }
 

@@ -275,6 +275,7 @@
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+    margin-top: 0.5rem;
   }
   
   .edit-btn,
@@ -283,18 +284,14 @@
     min-width: 80px;
     padding: 0.6rem 1rem;
     font-size: 0.9rem;
+    clip-path: none; /* Remove geometric styling on mobile */
+    border-radius: 4px; /* Add normal border radius */
   }
   
   .work-meta,
   .suggestion-meta {
     flex-wrap: wrap;
     gap: 0.5rem;
-  }
-
-  .work-actions {
-    align-self: stretch;
-    justify-content: space-evenly;
-    margin-top: 0.5rem;
   }
 }
 

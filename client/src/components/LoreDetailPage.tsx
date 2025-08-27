@@ -1,15 +1,217 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { loreAPI } from '../services/api';
 import { Lore } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { usePersistedSettings } from '../hooks/usePersistedSettings';
+import { useRotatingLoadingMessage } from '../hooks/useRotatingLoadingMessage';
 import CommentSection from './CommentSection';
-import './LoreDetailPage.css';
+import RichTextEditor from './RichTextEditor';
+import './ReaderView.css'; // Use ReaderView CSS instead of LoreDetailPage.css
 
 const LoreDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [lore, setLore] = useState<Lore | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const { settings, updateSettings } = usePersistedSettings();
+  const { user } = useAuth();
+  
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  
+  // Rotating loading message
+  const loadingMessage = useRotatingLoadingMessage([
+    'Loading lore entry...',
+    'Fetching knowledge...',
+    'Preparing content...',
+    'Almost ready...',
+    'Loading wisdom...'
+  ]);
+  
+  const contentRef = useRef<HTMLDivElement>(null);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const wakeLockRef = useRef<any>(null);
+  
+  // Admin edit state - changed from modal to inline
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+
+  // Versioning state to force re-rendering of ReactMarkdown
+  const [contentVersion, setContentVersion] = useState(0);
+
+  // State for paragraph-based TTS
+  const [paragraphs, setParagraphs] = useState<string[]>([]);
+  const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
+
+  // Wake lock functions
+  const requestWakeLock = useCallback(async () => {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+      } catch (err) {
+        console.warn('Wake lock failed:', err);
+      }
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  }, []);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      setAvailableVoices(window.speechSynthesis.getVoices());
+    };
+    
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
+  // Split content into paragraphs
+  useEffect(() => {
+    if (lore?.content) {
+      const splitParagraphs = lore.content
+        .split(/\n\s*\n/)
+        .filter(p => p.trim().length > 0)
+        .map(p => p.trim());
+      setParagraphs(splitParagraphs);
+      setCurrentParagraphIndex(settings.currentParagraph || 0);
+      setEditContent(lore.content);
+    }
+  }, [lore, settings.currentParagraph]);
+
+  // Highlight current paragraph
+  const applyHighlight = useCallback((index: number) => {
+    if (!contentRef.current) return;
+    
+    const paragraphElements = contentRef.current.querySelectorAll<HTMLElement>('.paragraph');
+    paragraphElements.forEach((el, i) => {
+      el.classList.toggle('current-paragraph', i === index);
+    });
+  }, []);
+
+  const startTextToSpeechFromParagraph = useCallback((paragraphIndex: number) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      setCurrentParagraphIndex(paragraphIndex);
+      applyHighlight(paragraphIndex);
+      updateSettings({ currentParagraph: paragraphIndex });
+
+      const speakText = (text: string) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = settings.speechRate;
+        const selectedVoice = availableVoices.find(voice => voice.name === settings.selectedVoice);
+        if (selectedVoice) utterance.voice = selectedVoice;
+        
+        utterance.onstart = () => {
+          updateSettings({ isPlaying: true });
+          requestWakeLock();
+        };
+        utterance.onend = () => {
+          updateSettings({ isPlaying: false });
+          releaseWakeLock();
+          if (paragraphIndex + 1 < paragraphs.length) {
+            setTimeout(() => {
+              startTextToSpeechFromParagraph(paragraphIndex + 1);
+            }, 200);
+          }
+        };
+        utterance.onerror = () => {
+          updateSettings({ isPlaying: false });
+          releaseWakeLock();
+        };
+        
+        speechRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
+      };
+
+      const currentText = paragraphs[paragraphIndex];
+      speakText(currentText);
+    } else {
+      alert('Text-to-speech is not supported in your browser.');
+    }
+  }, [paragraphs, settings.speechRate, settings.selectedVoice, availableVoices, updateSettings, requestWakeLock, releaseWakeLock, applyHighlight]);
+
+  const startTextToSpeech = () => {
+    if (paragraphs.length === 0) return;
+    const index = Math.min(settings.currentParagraph || 0, paragraphs.length - 1);
+    requestWakeLock();
+    startTextToSpeechFromParagraph(index);
+  };
+
+  const pauseTextToSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.pause();
+      updateSettings({ isPlaying: false });
+      releaseWakeLock();
+    }
+  };
+
+  const resumeTextToSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.resume();
+      updateSettings({ isPlaying: true });
+      requestWakeLock();
+    }
+  };
+
+  const stopTextToSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      updateSettings({ isPlaying: false, currentParagraph: 0 });
+      setCurrentParagraphIndex(0);
+      releaseWakeLock();
+      if (contentRef.current) {
+        contentRef.current.scrollTop = 0;
+      }
+    }
+  };
+
+  // Cleanup wake lock on unmount
+  useEffect(() => {
+    return () => {
+      releaseWakeLock();
+    };
+  }, [releaseWakeLock]);
+
+  // Highlight current paragraph when index changes
+  useEffect(() => {
+    applyHighlight(currentParagraphIndex);
+    const nodes = contentRef.current?.querySelectorAll<HTMLElement>('.paragraph');
+    const active = nodes && nodes[currentParagraphIndex];
+    if (settings.autoScroll && active) {
+      active.scrollIntoView({ behavior: settings.isPlaying ? 'smooth' : 'auto', block: 'center' });
+    }
+  }, [currentParagraphIndex, contentVersion, settings.autoScroll, settings.isPlaying, applyHighlight]);
+
+  const saveEdit = async () => {
+    if (!lore) return;
+    try {
+      await loreAPI.update(lore._id, { content: editContent });
+      setLore({ ...lore, content: editContent });
+      setContentVersion(v => v + 1);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Failed to save lore entry', err);
+      alert('Failed to save changes');
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditContent(lore?.content || '');
+    setIsEditing(false);
+  };
 
   useEffect(() => {
     const fetchLore = async () => {
@@ -32,7 +234,7 @@ const LoreDetailPage: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading lore entry...</p>
+        <p>{loadingMessage}</p>
       </div>
     );
   }
@@ -47,41 +249,195 @@ const LoreDetailPage: React.FC = () => {
     );
   }
 
+  const contentStyle = {
+    fontSize: `${settings.fontSize}px`,
+    fontFamily: settings.fontFamily === 'default' ? 'inherit' : 
+                settings.fontFamily === 'dyslexic' ? 'OpenDyslexic, sans-serif' :
+                settings.fontFamily === 'roboto' ? 'Roboto, sans-serif' :
+                settings.fontFamily === 'serif' ? 'Georgia, serif' : 'inherit'
+  } as React.CSSProperties;
+
   return (
-    <div className="lore-detail-page">
-      <Link to="/lore" className="back-link">← Back to Lore Library</Link>
-      
-      <div className="lore-header">
-        <div className="lore-info">
-          <div className="lore-meta">
-            <span className="lore-category">{lore.category}</span>
-            <span className="lore-date">
-              {new Date(lore.createdAt).toLocaleDateString()}
-            </span>
+    <div className="reader-view">
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="settings-overlay" onClick={() => setShowSettings(false)}>
+          <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
+            <h3>Reader Settings</h3>
+            
+            {/* Font Size */}
+            <div className="setting-group">
+              <label>Font Size: {settings.fontSize}px</label>
+              <input
+                type="range"
+                min="12"
+                max="32"
+                value={settings.fontSize}
+                onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
+              />
+            </div>
+
+            {/* Font Family */}
+            <div className="setting-group">
+              <label>Font Family</label>
+              <div className="font-buttons">
+                {['default', 'roboto', 'serif', 'dyslexic'].map(font => (
+                  <button
+                    key={font}
+                    className={`font-btn ${settings.fontFamily === font ? 'active' : ''}`}
+                    onClick={() => updateSettings({ fontFamily: font })}
+                  >
+                    {font === 'dyslexic' ? 'Dyslexic' : font.charAt(0).toUpperCase() + font.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* TTS Controls */}
+            <div className="tts-controls">
+              <h4>Text-to-Speech</h4>
+              
+              {/* Voice Selection */}
+              <div className="voice-control">
+                <label>Voice</label>
+                <select
+                  className="voice-select"
+                  value={settings.selectedVoice}
+                  onChange={(e) => updateSettings({ selectedVoice: e.target.value })}
+                >
+                  <option value="">Default Voice</option>
+                  {availableVoices.map((voice) => (
+                    <option key={voice.name} value={voice.name}>
+                      {voice.name} ({voice.lang})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Speech Rate */}
+              <div className="speed-control">
+                <label>Speech Rate: {settings.speechRate}x</label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="5"
+                  step="0.1"
+                  value={settings.speechRate}
+                  onChange={(e) => updateSettings({ speechRate: parseFloat(e.target.value) })}
+                />
+              </div>
+              
+              {/* TTS Control Buttons */}
+              <div className="tts-button-group">
+                <button
+                  onClick={settings.isPlaying ? pauseTextToSpeech : (window.speechSynthesis?.paused ? resumeTextToSpeech : startTextToSpeech)}
+                  className={`tts-btn ${settings.isPlaying ? 'playing' : ''}`}
+                >
+                  {settings.isPlaying ? 'Pause' : (window.speechSynthesis?.paused ? 'Resume' : 'Play')}
+                </button>
+                
+                <button
+                  onClick={stopTextToSpeech}
+                  className="tts-btn stop-btn"
+                  disabled={!settings.isPlaying && !window.speechSynthesis?.paused}
+                >
+                  Stop
+                </button>
+              </div>
+              
+              {/* Auto-scroll toggle */}
+              <div className="tts-options">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={settings.autoScroll}
+                    onChange={(e) => updateSettings({ autoScroll: e.target.checked })}
+                  />
+                  Auto-scroll during speech
+                </label>
+              </div>
+            </div>
+
+            <button className="close-settings" onClick={() => setShowSettings(false)}>
+              Close Settings
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="reader-header">
+        <div className="reader-nav">
+          <Link to="/lore" className="back-link">← Back to Lore Library</Link>
           
+          <div className="reader-nav-actions">
+            {user?.role === 'admin' && (
+              <button 
+                className="edit-page-btn"
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                {isEditing ? 'Cancel Edit' : 'Edit'}
+              </button>
+            )}
+            <button 
+              className="settings-btn"
+              onClick={() => setShowSettings(!showSettings)}
+            >
+              Settings
+            </button>
+          </div>
+        </div>
+
+        <div className="page-info">
           <h1>{lore.title}</h1>
-          
-          <div className="lore-stats">
-            <span>{lore.likes} likes</span>
+          <div className="page-meta">
+            <span className="page-category">Category: {lore.category}</span>
           </div>
         </div>
       </div>
 
-      <div className="lore-content-section">
-        <div className="lore-content">
-          {lore.content.split('\n').map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </div>
+      <div 
+        className="reader-content" 
+        ref={contentRef} 
+        style={contentStyle}
+        onClick={() => setShowSettings(!showSettings)}
+      >
+        {isEditing ? (
+          <div className="inline-editor">
+            <RichTextEditor
+              value={editContent}
+              onChange={setEditContent}
+              rows={15}
+            />
+            <div className="inline-edit-actions">
+              <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
+              <button className="save-btn" onClick={saveEdit}>Save</button>
+            </div>
+          </div>
+        ) : (
+          <div className="paragraph-container">
+            <ReactMarkdown 
+              components={{
+                p: ({ children }) => <div className="paragraph">{children}</div>,
+                h1: ({ children }) => <div className="paragraph"><h1>{children}</h1></div>,
+                h2: ({ children }) => <div className="paragraph"><h2>{children}</h2></div>,
+                h3: ({ children }) => <div className="paragraph"><h3>{children}</h3></div>,
+                blockquote: ({ children }) => <div className="paragraph"><blockquote>{children}</blockquote></div>,
+                ul: ({ children }) => <div className="paragraph"><ul>{children}</ul></div>,
+                ol: ({ children }) => <div className="paragraph"><ol>{children}</ol></div>,
+              }}
+            >
+              {lore.content}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
 
-      <div className="comments-section">
-        <CommentSection 
-          contentId={lore._id} 
-          contentType="Lore" 
-        />
-      </div>
+      {/* Comments Section */}
+      <CommentSection 
+        contentId={lore._id} 
+        contentType="Lore" 
+      />
     </div>
   );
 };

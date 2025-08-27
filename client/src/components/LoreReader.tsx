@@ -350,7 +350,7 @@ const LoreReader: React.FC = () => {
                 <input
                   type="range"
                   min="0.5"
-                  max="2"
+                  max="5"
                   step="0.1"
                   value={settings.speechRate}
                   onChange={(e) => updateSettings({ speechRate: parseFloat(e.target.value) })}
@@ -413,7 +413,7 @@ const LoreReader: React.FC = () => {
               className="settings-btn"
               onClick={() => setShowSettings(!showSettings)}
             >
-              ⚙️ Settings
+              Settings
             </button>
           </div>
         </div>
@@ -422,7 +422,6 @@ const LoreReader: React.FC = () => {
           <h1>{lore.title}</h1>
           <div className="page-meta">
             <span className="page-category">Category: {lore.category}</span>
-            <span className="page-likes">❤️ {lore.likes} likes</span>
           </div>
         </div>
       </div>
