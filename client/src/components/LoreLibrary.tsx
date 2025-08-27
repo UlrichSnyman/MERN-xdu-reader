@@ -150,7 +150,7 @@ const LoreLibrary: React.FC = () => {
                     >
                       {(lore as any).hasLiked ? 'Liked' : 'Like'} ({lore.likes})
                     </button>
-                    <Link to={`/lore/read/${lore._id}`} className="read-btn">
+                    <Link to={`/lore/${lore._id}`} className="read-btn">
                       Read
                     </Link>
                   </div>

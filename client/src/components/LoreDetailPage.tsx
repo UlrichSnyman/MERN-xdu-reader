@@ -219,8 +219,10 @@ const LoreDetailPage: React.FC = () => {
       
       try {
         const response = await loreAPI.getById(id);
+        console.log('Lore Detail Response:', response.data); // Debug log
         setLore(response.data);
       } catch (err: any) {
+        console.error('Failed to load lore entry:', err); // Debug log
         setError(err.response?.data?.error || 'Failed to load lore entry');
       } finally {
         setLoading(false);
