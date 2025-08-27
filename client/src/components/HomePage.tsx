@@ -28,7 +28,6 @@ const HomePage: React.FC = () => {
     const fetchWorks = async () => {
       try {
         const response = await worksAPI.getAll();
-        console.log('Works API Response:', response); // Debug log
         const list = Array.isArray(response.data) ? response.data : response.data?.works || [];
         setWorks(list as Work[]);
 
@@ -135,12 +134,24 @@ const HomePage: React.FC = () => {
               <div key={work._id} className="work-card">
                 <div className="work-cover">
                   {work.coverImage ? (
-                    <img src={work.coverImage} alt={work.title} />
-                  ) : (
-                    <div className="work-cover-placeholder">
-                      {work.title.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                    <img 
+                      src={work.coverImage} 
+                      alt={work.title}
+                      onError={(e) => {
+                        // Hide broken image and show placeholder instead
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const placeholder = target.nextElementSibling as HTMLElement;
+                        if (placeholder) placeholder.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="work-cover-placeholder"
+                    style={{ display: work.coverImage ? 'none' : 'flex' }}
+                  >
+                    {work.title.charAt(0).toUpperCase()}
+                  </div>
                 </div>
                 <div className="work-content">
                   <h3>{work.title}</h3>

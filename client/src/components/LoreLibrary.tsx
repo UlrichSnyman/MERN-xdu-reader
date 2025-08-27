@@ -30,7 +30,6 @@ const LoreLibrary: React.FC = () => {
     const fetchLore = async () => {
       try {
         const response = await loreAPI.getAll(selectedCategory || undefined);
-        console.log('Lore API Response:', response); // Debug log
         const loreData = Array.isArray(response.data) ? response.data : response.data?.lore || [];
         setLoreEntries(loreData);
       } catch (err: any) {
