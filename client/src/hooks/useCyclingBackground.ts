@@ -12,7 +12,8 @@ export const useCyclingBackground = (cycleInterval: number = 10000) => {
     const fetchCoverImages = async () => {
       try {
         const response = await worksAPI.getAll();
-        const works = response.data;
+        console.log('API Response:', response); // Debug log
+        const works = Array.isArray(response.data) ? response.data : response.data?.works || [];
         const images = works
           .filter((work: any) => work.coverImage)
           .map((work: any) => work.coverImage);
@@ -24,7 +25,8 @@ export const useCyclingBackground = (cycleInterval: number = 10000) => {
         // Fallback to deployed API endpoint if local fails
         try {
           const fallback = await axios.get('https://mern-xdu-reader.onrender.com/api/works');
-          const works = fallback.data;
+          console.log('Fallback Response:', fallback); // Debug log
+          const works = Array.isArray(fallback.data) ? fallback.data : fallback.data?.works || [];
           const images = works
             .filter((work: any) => work.coverImage)
             .map((work: any) => work.coverImage);

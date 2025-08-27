@@ -28,13 +28,14 @@ const HomePage: React.FC = () => {
     const fetchWorks = async () => {
       try {
         const response = await worksAPI.getAll();
-        const list = response.data as any[];
+        console.log('Works API Response:', response); // Debug log
+        const list = Array.isArray(response.data) ? response.data : response.data?.works || [];
         setWorks(list as Work[]);
 
         // Fetch per-work userProgress to build Resume links (only when logged in)
         if (list.length && isAuthenticated) {
           const results = await Promise.all(
-            list.map(async (w) => {
+            list.map(async (w: any) => {
               try {
                 const detail = await worksAPI.getById(w._id);
                 const cp = (detail.data as any)?.userProgress?.currentPage;

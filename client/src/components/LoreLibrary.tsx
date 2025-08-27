@@ -30,7 +30,9 @@ const LoreLibrary: React.FC = () => {
     const fetchLore = async () => {
       try {
         const response = await loreAPI.getAll(selectedCategory || undefined);
-        setLoreEntries(response.data);
+        console.log('Lore API Response:', response); // Debug log
+        const loreData = Array.isArray(response.data) ? response.data : response.data?.lore || [];
+        setLoreEntries(loreData);
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load lore entries');
       } finally {
@@ -55,7 +57,7 @@ const LoreLibrary: React.FC = () => {
     try {
       const apiCall = hasLiked ? loreAPI.unlike : loreAPI.like;
       const response = await apiCall(loreId);
-      const updatedLore = response.data;
+      const updatedLore = Array.isArray(response.data) ? response.data[0] : response.data;
 
       setLoreEntries(prevLore =>
         prevLore.map(lore =>
