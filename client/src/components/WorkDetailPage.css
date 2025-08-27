@@ -3,6 +3,8 @@
   margin: 0 auto;
   padding: 1.5rem 1rem;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Add cover image as background for work detail page */
@@ -153,12 +155,35 @@
   text-decoration: none !important;
   padding: 0.5rem 1rem;
   height: var(--btn-height);
+  min-width: 60px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1;
 }
 
-/* Keep edit/delete consistent height */
+/* Keep edit/delete consistent height and alignment */
 .page-actions .edit-page-btn,
 .page-actions .delete-page-btn {
   height: var(--btn-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  min-width: 60px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-actions .edit-page-btn:hover {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
 }
 
 .like-btn {
@@ -235,6 +260,9 @@
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
 }
 
 /* Pages header with pagination */
@@ -330,6 +358,9 @@
   align-items: center;
   padding: 0.75rem 1.25rem;
   clip-path: polygon(0 0, 98% 0, 100% 30%, 100% 100%, 2% 100%, 0 70%);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 60px;
 }
 
 .page-item:hover {
@@ -366,14 +397,19 @@
   display: flex;
   gap: 0; /* ensure no visual gaps */
   align-items: stretch;
+  flex-shrink: 0;
 }
 
 /* Base button block style */
 .read-page-btn,
 .edit-page-btn,
 .delete-page-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* Remove sibling margin overrides so global negative overlap applies */
@@ -404,6 +440,72 @@
   clip-path: none;
 } */
 
+/* Add page item styling */
+.add-page-item {
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-color);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  clip-path: polygon(0 0, 98% 0, 100% 30%, 100% 100%, 2% 100%, 0 70%);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.add-page-item:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-tertiary);
+  color: var(--accent-color);
+}
+
+.add-page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-page-content .plus {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.add-page-content .add-label {
+  font-size: 1rem;
+}
+
+/* No pages state */
+.no-pages {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.add-first-page-btn {
+  background: var(--accent-color);
+  color: white;
+  border: 1px solid var(--accent-color);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.add-first-page-btn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: var(--shadow-glow);
+}
+
 @media (max-width: 768px) {
   .work-info {
     flex-direction: column;
@@ -428,6 +530,40 @@
   .work-actions {
     justify-content: center;
     flex-wrap: wrap;
+  }
+  
+  /* Page items responsive */
+  .page-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+    text-align: center;
+    min-height: auto;
+  }
+  
+  .page-info {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .page-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .read-page-btn,
+  .edit-page-btn,
+  .delete-page-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.75rem 1rem;
+  }
+  
+  .add-page-item {
+    padding: 2rem 1rem;
+    min-height: 100px;
   }
   
   .pages-grid {
@@ -458,6 +594,49 @@
   
   .chapters-section {
     padding: 1.5rem;
+  }
+}
+
+/* Additional mobile optimizations for small screens */
+@media (max-width: 480px) {
+  .work-detail-page {
+    padding: 1rem 0.5rem;
+  }
+  
+  .pages-section {
+    padding: 1rem;
+    margin: 0;
+  }
+  
+  .page-item,
+  .add-page-item {
+    margin: 0;
+    width: 100%;
+    padding: 1rem 0.75rem;
+    clip-path: none; /* Remove clip-path on very small screens for better compatibility */
+    border-radius: 8px;
+  }
+  
+  .page-info {
+    gap: 0.25rem;
+  }
+  
+  .page-title {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+  
+  .page-actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .read-page-btn,
+  .edit-page-btn,
+  .delete-page-btn {
+    min-width: 70px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }
 
