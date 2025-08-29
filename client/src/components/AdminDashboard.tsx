@@ -57,6 +57,66 @@ const AdminDashboard: React.FC = () => {
         setSuggestions(suggestionsResponse.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        // Set demo data for UI demonstration when API is not available
+        setWorks([
+          {
+            _id: '1',
+            title: 'The Chronicles of Digital Wisdom: A Journey Through the Modern Age of Technology and Human Connection',
+            synopsis: 'This comprehensive exploration delves deep into the intricate relationship between humanity and technology in the 21st century. Through carefully researched analysis and compelling narrative, we examine how digital transformation has fundamentally altered our social structures, communication patterns, and cognitive processes. The work spans multiple disciplines, including sociology, psychology, and computer science, offering readers a multifaceted understanding of our evolving digital landscape.',
+            likes: 42,
+            pages: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            coverImage: ''
+          },
+          {
+            _id: '2',
+            title: 'Echoes of Tomorrow',
+            synopsis: 'A brief glimpse into potential futures.',
+            likes: 28,
+            pages: [],
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            updatedAt: new Date(Date.now() - 86400000).toISOString(),
+            coverImage: ''
+          },
+          {
+            _id: '3',
+            title: 'The Art of Minimalist Design Principles in Modern User Interface Development',
+            synopsis: 'An in-depth study of how minimalist design philosophy has revolutionized user experience design across digital platforms.',
+            likes: 15,
+            pages: [],
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+            updatedAt: new Date(Date.now() - 172800000).toISOString(),
+            coverImage: ''
+          }
+        ]);
+        
+        setSuggestions([
+          {
+            _id: '1',
+            content: 'I would love to see more interactive elements in the stories, perhaps some multimedia content that could enhance the reading experience. The current format is great, but adding visual elements, audio narration, or even interactive decision points could make the experience more immersive and engaging for modern readers.',
+            authorName: 'Alexandra Chen',
+            timestamp: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            _id: '2',
+            content: 'The platform could benefit from a dark mode theme and better mobile responsiveness. Also, consider adding bookmarking features.',
+            authorName: 'Marcus Johnson',
+            timestamp: new Date(Date.now() - 43200000).toISOString(),
+            createdAt: new Date(Date.now() - 43200000).toISOString(),
+            updatedAt: new Date(Date.now() - 43200000).toISOString()
+          },
+          {
+            _id: '3',
+            content: 'Could we have a recommendation system based on reading history? It would be amazing to discover new content tailored to individual preferences.',
+            authorName: 'Sarah Williams',
+            timestamp: new Date(Date.now() - 86400000).toISOString(),
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            updatedAt: new Date(Date.now() - 86400000).toISOString()
+          }
+        ]);
       } finally {
         setLoading(false);
       }

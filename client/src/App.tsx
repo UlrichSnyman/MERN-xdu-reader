@@ -35,6 +35,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      <Route path="/demo/dashboard" element={<AdminDashboard />} />
     </Routes>
   );
 }
