@@ -90,6 +90,10 @@ const LoginForm: React.FC = () => {
               required
               disabled={loading}
               autoComplete="username"
+              maxLength={30}
+              minLength={3}
+              pattern="[a-zA-Z0-9_-]+"
+              title="Username must be 3-30 characters, letters, numbers, hyphens and underscores only"
             />
           </div>
           
@@ -105,6 +109,7 @@ const LoginForm: React.FC = () => {
               disabled={loading}
               autoComplete="email"
               placeholder="your.email@example.com"
+              maxLength={100}
             />
           </div>
           
@@ -120,6 +125,7 @@ const LoginForm: React.FC = () => {
               disabled={loading}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
               minLength={6}
+              maxLength={128}
             />
           </div>
           
