@@ -7,6 +7,7 @@ const LoginForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,7 @@ const LoginForm: React.FC = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
-    setFormData({ username: '', password: '' });
+    setFormData({ username: '', email: '', password: '' });
   };
 
   return (
@@ -93,6 +94,21 @@ const LoginForm: React.FC = () => {
           </div>
           
           <div className="form-group">
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              autoComplete="email"
+              placeholder="your.email@example.com"
+            />
+          </div>
+          
+          <div className="form-group">
             <label htmlFor="password">Password:</label>
             <input
               type="password"
@@ -110,7 +126,7 @@ const LoginForm: React.FC = () => {
           <button 
             type="submit" 
             className="auth-btn"
-            disabled={loading || !formData.username || !formData.password}
+            disabled={loading || !formData.username || !formData.email || !formData.password}
           >
             {loading ? (isLogin ? 'Logging in...' : 'Registering...') : (isLogin ? 'Login' : 'Register')}
           </button>

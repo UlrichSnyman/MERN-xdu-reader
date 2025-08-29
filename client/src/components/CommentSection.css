@@ -7,17 +7,6 @@
   position: relative;
 }
 
-.comment-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 4px;
-  background: var(--gradient-accent);
-  clip-path: polygon(20% 0, 100% 0, 80% 100%, 0% 100%);
-}
-
 .comment-section h3 {
   color: var(--text-primary);
   margin-bottom: 1.25rem;

@@ -536,34 +536,41 @@
   .page-item {
     flex-direction: column;
     align-items: stretch;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 0.5rem; /* More compact */
+    padding: 0.75rem; /* Smaller padding */
     text-align: center;
     min-height: auto;
   }
   
   .page-info {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem; /* Tighter spacing */
     text-align: center;
+  }
+  
+  .page-title {
+    font-size: 0.9rem; /* Smaller font */
+    line-height: 1.2;
   }
   
   .page-actions {
     width: 100%;
     justify-content: center;
+    gap: 0.25rem; /* Tighter button spacing */
   }
   
   .read-page-btn,
   .edit-page-btn,
   .delete-page-btn {
     flex: 1;
-    min-width: 80px;
-    padding: 0.75rem 1rem;
+    min-width: 60px; /* Smaller buttons */
+    padding: 0.5rem 0.75rem; /* Smaller padding */
+    font-size: 0.8rem; /* Smaller font */
   }
   
   .add-page-item {
-    padding: 2rem 1rem;
-    min-height: 100px;
+    padding: 1.5rem 1rem; /* More compact */
+    min-height: 80px; /* Smaller height */
   }
   
   .pages-grid {
@@ -612,7 +619,7 @@
   .add-page-item {
     margin: 0;
     width: 100%;
-    padding: 1rem 0.75rem;
+    padding: 0.75rem 0.5rem; /* Even more compact */
     clip-path: none; /* Remove clip-path on very small screens for better compatibility */
     border-radius: 8px;
   }
@@ -622,21 +629,21 @@
   }
   
   .page-title {
-    font-size: 1rem;
+    font-size: 0.85rem; /* Even smaller on tiny screens */
     line-height: 1.3;
   }
   
   .page-actions {
-    gap: 0.5rem;
+    gap: 0.25rem; /* Tighter spacing */
     flex-wrap: wrap;
   }
   
   .read-page-btn,
   .edit-page-btn,
   .delete-page-btn {
-    min-width: 70px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
+    min-width: 55px; /* Very compact buttons */
+    padding: 0.4rem 0.6rem; /* Smaller padding */
+    font-size: 0.75rem; /* Smaller font */
   }
 }
 
