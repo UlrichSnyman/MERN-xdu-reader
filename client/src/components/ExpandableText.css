@@ -1,0 +1,71 @@
+.expandable-text {
+  display: inline;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.expandable-text .text-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.expandable-text .line-clamp {
+  line-height: 1.5;
+}
+
+.expand-toggle {
+  color: var(--accent-color);
+  background: none;
+  border: none;
+  padding: 0 0 0 0.5rem;
+  margin-left: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: underline;
+  transition: var(--transition-smooth);
+  display: inline;
+  vertical-align: baseline;
+  outline: none;
+}
+
+.expand-toggle:hover {
+  color: var(--accent-hover);
+  text-decoration: none;
+}
+
+.expand-toggle:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+.expand-toggle:active {
+  transform: scale(0.98);
+}
+
+/* Ensure proper spacing in different contexts */
+.expandable-text.work-synopsis,
+.expandable-text.suggestion-content {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.expandable-text.work-synopsis .expand-toggle,
+.expandable-text.suggestion-content .expand-toggle {
+  margin-left: 0;
+  padding-left: 0;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .expand-toggle {
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    margin-top: 0.25rem;
+    display: block;
+  }
+}

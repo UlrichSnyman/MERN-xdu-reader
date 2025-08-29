@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { worksAPI, suggestionsAPI, uploadAPI, loreAPI } from '../services/api';
 import { Work, Suggestion } from '../types';
 import RichTextEditor from './RichTextEditor';
+import ExpandableText from './ExpandableText';
 import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
@@ -302,7 +303,13 @@ const AdminDashboard: React.FC = () => {
             <h3>Recent Suggestions</h3>
             {suggestions.slice(0, 5).map(suggestion => (
               <div key={suggestion._id} className="activity-item">
-                <p>{suggestion.content.substring(0, 100)}...</p>
+                <div className="activity-content">
+                  <ExpandableText 
+                    text={suggestion.content} 
+                    maxLength={100}
+                    className="activity-text"
+                  />
+                </div>
                 <small>{new Date(suggestion.createdAt).toLocaleDateString()}</small>
               </div>
             ))}
@@ -321,8 +328,21 @@ const AdminDashboard: React.FC = () => {
             {works.map(work => (
               <div key={work._id} className="work-item">
                 <div className="work-info">
-                  <h4>{work.title}</h4>
-                  <p>{work.synopsis}</p>
+                  <h4>
+                    <ExpandableText 
+                      text={work.title} 
+                      maxLength={80}
+                      className="work-title"
+                    />
+                  </h4>
+                  <div className="work-synopsis">
+                    <ExpandableText 
+                      text={work.synopsis || 'No synopsis available'} 
+                      maxLength={150}
+                      maxLines={2}
+                      className="work-synopsis"
+                    />
+                  </div>
                   <div className="work-meta">
                     <span className="likes">Likes: {work.likes}</span>
                     <span className="date">
@@ -427,7 +447,14 @@ const AdminDashboard: React.FC = () => {
             {suggestions.map(suggestion => (
               <div key={suggestion._id} className="suggestion-item">
                 <div className="suggestion-content">
-                  <p>{suggestion.content}</p>
+                  <div className="suggestion-text">
+                    <ExpandableText 
+                      text={suggestion.content} 
+                      maxLength={200}
+                      maxLines={3}
+                      className="suggestion-content"
+                    />
+                  </div>
                   <div className="suggestion-meta">
                     {suggestion.authorName && (
                       <span className="author">By: {suggestion.authorName}</span>

@@ -1,53 +1,58 @@
-/* CSS Variables for Sleek Dark Geometric Design */
+/* CSS Variables for Sophisticated Geometric Design */
 :root[data-theme="light"] {
-  --bg-primary: #f5f7fa;
+  --bg-primary: #fafbfc;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #e8f2ff;
-  --text-primary: #1a365d;
-  --text-secondary: #4a5568;
+  --bg-tertiary: #f0f4f8;
+  --bg-quaternary: #e6eef5;
+  --text-primary: #1a202c;
+  --text-secondary: #2d3748;
   --text-muted: #718096;
   --border-color: #e2e8f0;
-  --accent-color: #1d4ed8;
-  --accent-hover: #1e40af;
-  --success-color: #38a169;
-  --success-hover: #2f855a;
-  --danger-color: #e53e3e;
-  --danger-hover: #c53030;
-  --warning-color: #dd6b20;
-  --warning-hover: #c05621;
-  --overlay-bg: rgba(26, 54, 93, 0.8);
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --border-accent: #cbd5e0;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-glow: #3b82f6;
+  --success-color: #059669;
+  --success-hover: #047857;
+  --danger-color: #dc2626;
+  --danger-hover: #b91c1c;
+  --warning-color: #d97706;
+  --warning-hover: #b45309;
+  --overlay-bg: rgba(26, 32, 44, 0.85);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
   --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --transition-smooth: all 0.2s ease-out;
+  --gradient-accent: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root[data-theme="dark"] {
-  --bg-primary: #070a0f;  /* Darker than #0a0e13 */
-  --bg-secondary: #0f1419;  /* Darker than #151922 */
-  --bg-tertiary: #1a212f;  /* Darker than #1f2937 */
-  --bg-quaternary: #2a3441;  /* Darker than #374151 */
-  --text-primary: #ffffff;
+  --bg-primary: #0a0e13;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-quaternary: #374151;
+  --text-primary: #f9fafb;
   --text-secondary: #e5e7eb;
   --text-muted: #9ca3af;
-  --border-color: #2a3441;  /* Darker */
-  --border-accent: #4a90e2;  /* Darker blue */
-  --accent-color: #1d4ed8;  /* Darker than #2563eb */
-  --accent-hover: #1e40af;  /* Darker than #1d4ed8 */
-  --accent-glow: #1c4ed8;  /* Darker than #1e40af */
-  --success-color: #047857;  /* Darker than #10b981 */
-  --success-hover: #065f46;  /* Darker than #059669 */
+  --border-color: #374151;
+  --border-accent: #4b5563;
+  --accent-color: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-glow: #60a5fa;
+  --success-color: #10b981;
+  --success-hover: #059669;
   --danger-color: #ef4444;
   --danger-hover: #dc2626;
   --warning-color: #f59e0b;
   --warning-hover: #d97706;
-  --overlay-bg: rgba(10, 14, 19, 0.95);
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
-  --gradient-primary: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #7c3aed 100%);
-  --transition-smooth: all 0.2s ease-out;
+  --overlay-bg: rgba(17, 24, 39, 0.95);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.2);
+  --gradient-primary: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+  --gradient-accent: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root[data-theme="light"],
@@ -75,9 +80,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   transition: var(--transition-smooth);
   font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 0.01em;
 }
 
 .App {

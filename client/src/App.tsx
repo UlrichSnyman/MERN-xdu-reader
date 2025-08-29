@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -12,6 +12,8 @@ import SuggestionsPage from './components/SuggestionsPage';
 import LoginForm from './components/LoginForm';
 import AdminDashboard from './components/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import SplashScreen from './components/SplashScreen';
+import { CacheManager, CACHE_KEYS } from './utils/cache';
 import './App.css';
 
 function AppRoutes() {
@@ -38,6 +40,35 @@ function AppRoutes() {
 }
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Check if we have recent cached data to skip splash screen
+    const worksCache = CacheManager.get(CACHE_KEYS.WORKS);
+    const loreCache = CacheManager.get(CACHE_KEYS.LORE);
+    
+    if (worksCache && loreCache) {
+      // Data is cached and valid, skip splash screen
+      setTimeout(() => {
+        setShowSplash(false);
+        setIsLoading(false);
+      }, 500); // Brief delay for smooth transition
+    } else {
+      // No valid cache, show splash screen
+      setIsLoading(true);
+    }
+  }, []);
+
+  const handleLoadingComplete = () => {
+    setShowSplash(false);
+    setTimeout(() => setIsLoading(false), 100);
+  };
+
+  if (showSplash || isLoading) {
+    return <SplashScreen onLoadingComplete={handleLoadingComplete} />;
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>
