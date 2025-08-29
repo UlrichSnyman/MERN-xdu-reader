@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { worksAPI, pagesAPI } from '../services/api';
 import { Work } from '../types';
 import { useAuth } from '../context/AuthContext';
+import CommentSection from './CommentSection';
 import './WorkDetailPage.css';
 
 const WorkDetailPage: React.FC = () => {
@@ -283,7 +284,8 @@ const WorkDetailPage: React.FC = () => {
               </div>
             ))}
 
-            {user?.role === 'admin' && (
+            {/* Add Page button only appears on the last group for admins */}
+            {user?.role === 'admin' && currentPageGroup === totalGroups && (
               <button className="page-item add-page-item" onClick={handleAddPage}>
                 <div className="add-page-content">
                   <span className="plus">+</span>
@@ -301,6 +303,11 @@ const WorkDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Comments Section */}
+      {work && (
+        <CommentSection contentId={work._id} contentType="Work" />
+      )}
       
       {/* Image Modal */}
       {showImageModal && work?.coverImage && (

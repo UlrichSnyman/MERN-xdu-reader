@@ -120,7 +120,7 @@ const HomePage: React.FC = () => {
       } as React.CSSProperties : {}}
     >
       <div className="hero-section">
-        <h1>Welcome to the Literary Collection</h1>
+        <h1>Welcome to XDU Collection</h1>
         <p>Discover captivating stories and immerse yourself in rich narratives</p>
       </div>
 
@@ -154,9 +154,9 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="work-content">
-                  <h3>{work.title}</h3>
+                  <h3 className="text-wrap">{work.title}</h3>
                   {work.synopsis && (
-                    <p className="work-synopsis">{work.synopsis}</p>
+                    <p className="work-synopsis text-wrap">{work.synopsis}</p>
                   )}
                   <div className="work-actions">
                     <button 

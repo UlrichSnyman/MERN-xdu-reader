@@ -363,7 +363,7 @@ const AdminDashboard: React.FC = () => {
             </div>
             <form onSubmit={handleUpdateWork} className="edit-form">
               <div className="form-group">
-                <label htmlFor="edit-title">Title *</label>
+                <label htmlFor="edit-title">Title * (max 200 characters)</label>
                 <input
                   id="edit-title"
                   type="text"
@@ -371,22 +371,26 @@ const AdminDashboard: React.FC = () => {
                   onChange={(e) => setEditForm({...editForm, title: e.target.value})}
                   disabled={submitting}
                   required
+                  maxLength={200}
                 />
+                <small className="char-count">{editForm.title.length}/200</small>
               </div>
               
               <div className="form-group">
-                <label htmlFor="edit-synopsis">Synopsis</label>
+                <label htmlFor="edit-synopsis">Synopsis (max 1000 characters)</label>
                 <textarea
                   id="edit-synopsis"
                   value={editForm.synopsis}
                   onChange={(e) => setEditForm({...editForm, synopsis: e.target.value})}
                   disabled={submitting}
                   rows={4}
+                  maxLength={1000}
                 />
+                <small className="char-count">{editForm.synopsis.length}/1000</small>
               </div>
               
               <div className="form-group">
-                <label htmlFor="edit-cover">Cover Image URL</label>
+                <label htmlFor="edit-cover">Cover Image URL (max 500 characters)</label>
                 <input
                   id="edit-cover"
                   type="url"
@@ -394,7 +398,9 @@ const AdminDashboard: React.FC = () => {
                   onChange={(e) => setEditForm({...editForm, coverImage: e.target.value})}
                   disabled={submitting}
                   placeholder="https://example.com/image.jpg"
+                  maxLength={500}
                 />
+                <small className="char-count">{editForm.coverImage.length}/500</small>
               </div>
               
               <div className="modal-actions">
@@ -458,7 +464,7 @@ const AdminDashboard: React.FC = () => {
               <h4>Create New Work</h4>
               <form onSubmit={handleCreateWork} className="create-form">
                 <div className="form-group">
-                  <label htmlFor="work-title">Title *</label>
+                  <label htmlFor="work-title">Title * (max 200 characters)</label>
                   <input
                     id="work-title"
                     type="text"
@@ -466,29 +472,35 @@ const AdminDashboard: React.FC = () => {
                     onChange={(e) => setWorkForm({...workForm, title: e.target.value})}
                     required
                     disabled={submitting}
+                    maxLength={200}
                   />
+                  <small className="char-count">{workForm.title.length}/200</small>
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="work-synopsis">Synopsis</label>
+                  <label htmlFor="work-synopsis">Synopsis (max 1000 characters)</label>
                   <textarea
                     id="work-synopsis"
                     value={workForm.synopsis}
                     onChange={(e) => setWorkForm({...workForm, synopsis: e.target.value})}
                     rows={3}
                     disabled={submitting}
+                    maxLength={1000}
                   />
+                  <small className="char-count">{workForm.synopsis.length}/1000</small>
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="work-cover">Cover Image URL</label>
+                  <label htmlFor="work-cover">Cover Image URL (max 500 characters)</label>
                   <input
                     id="work-cover"
                     type="url"
                     value={workForm.coverImage}
                     onChange={(e) => setWorkForm({...workForm, coverImage: e.target.value})}
                     disabled={submitting}
+                    maxLength={500}
                   />
+                  <small className="char-count">{workForm.coverImage.length}/500</small>
                 </div>
                 
                 <button type="submit" disabled={submitting || !workForm.title.trim()}>
@@ -501,7 +513,7 @@ const AdminDashboard: React.FC = () => {
               <h4>Create New Lore Entry</h4>
               <form onSubmit={handleCreateLore} className="create-form">
                 <div className="form-group">
-                  <label htmlFor="lore-title">Title *</label>
+                  <label htmlFor="lore-title">Title * (max 200 characters)</label>
                   <input
                     id="lore-title"
                     type="text"
@@ -509,7 +521,9 @@ const AdminDashboard: React.FC = () => {
                     onChange={(e) => setLoreForm({ ...loreForm, title: e.target.value })}
                     required
                     disabled={submitting}
+                    maxLength={200}
                   />
+                  <small className="char-count">{loreForm.title.length}/200</small>
                 </div>
                 <div className="form-group">
                   <label htmlFor="lore-category">Category</label>

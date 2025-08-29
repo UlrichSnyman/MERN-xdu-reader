@@ -7,7 +7,7 @@ import './CommentSection.css';
 
 interface CommentSectionProps {
   contentId: string;
-  contentType: 'Page' | 'Lore';
+  contentType: 'Page' | 'Lore' | 'Work';
 }
 
 const CommentSection: React.FC<CommentSectionProps> = ({ contentId, contentType }) => {

@@ -45,7 +45,7 @@ export interface Comment {
   authorName: string;
   content: string;
   parentContent: string;
-  parentType: 'Page' | 'Lore';
+  parentType: 'Page' | 'Lore' | 'Work';
   createdAt: string;
   updatedAt: string;
 }
@@ -85,5 +85,5 @@ export interface CommentFormData {
   authorName: string;
   content: string;
   parentContent: string;
-  parentType: 'Page' | 'Lore';
+  parentType: 'Page' | 'Lore' | 'Work';
 }

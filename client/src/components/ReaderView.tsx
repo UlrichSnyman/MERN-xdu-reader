@@ -103,12 +103,19 @@ const ReaderView: React.FC = () => {
   const [contentVersion, setContentVersion] = useState(0);
   const [workPagesOrder, setWorkPagesOrder] = useState<Record<string, string[]>>({});
 
-  // Utility function to split content into paragraphs
+  // Utility function to split content into paragraphs for TTS
   const splitIntoParagraphs = (content: string): string[] => {
     // Split by double newlines (markdown paragraphs) and filter out empty ones
     return content
       .split(/\n\s*\n/)
-      .map(p => p.trim())
+      .map(p => {
+        // Clean up the paragraph for TTS: replace line breaks with spaces
+        // and normalize whitespace to avoid pauses in speech synthesis
+        return p
+          .replace(/\n+/g, ' ')  // Replace line breaks with spaces
+          .replace(/\s+/g, ' ')  // Normalize multiple spaces to single space
+          .trim();
+      })
       .filter(p => p.length > 0);
   };
 
@@ -544,6 +551,20 @@ const ReaderView: React.FC = () => {
     }
   }, [showSettings, settings.isPlaying, currentParagraphIndex, applyHighlight]);
 
+  // Prevent body scrolling when settings modal is open
+  useEffect(() => {
+    if (showSettings) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSettings]);
+
   // Cleanup wake lock on unmount
   useEffect(() => {
     return () => {
@@ -748,7 +769,6 @@ const ReaderView: React.FC = () => {
         className="reader-content" 
         ref={contentRef} 
         style={contentStyle}
-        onClick={() => setShowSettings(!showSettings)}
       >
         {isEditing ? (
           <div className="inline-editor">

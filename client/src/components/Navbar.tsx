@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="nav-container">
         <Link to="/" className="nav-logo">
-          Literary Works
+          XDU Collection
         </Link>
         
         <div className="nav-menu">

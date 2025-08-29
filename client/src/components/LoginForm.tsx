@@ -7,6 +7,7 @@ const LoginForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,7 @@ const LoginForm: React.FC = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
-    setFormData({ username: '', password: '' });
+    setFormData({ username: '', email: '', password: '' });
   };
 
   return (
@@ -89,6 +90,26 @@ const LoginForm: React.FC = () => {
               required
               disabled={loading}
               autoComplete="username"
+              maxLength={30}
+              minLength={3}
+              pattern="[a-zA-Z0-9_-]+"
+              title="Username must be 3-30 characters, letters, numbers, hyphens and underscores only"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              autoComplete="email"
+              placeholder="your.email@example.com"
+              maxLength={100}
             />
           </div>
           
@@ -104,13 +125,14 @@ const LoginForm: React.FC = () => {
               disabled={loading}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
               minLength={6}
+              maxLength={128}
             />
           </div>
           
           <button 
             type="submit" 
             className="auth-btn"
-            disabled={loading || !formData.username || !formData.password}
+            disabled={loading || !formData.username || !formData.email || !formData.password}
           >
             {loading ? (isLogin ? 'Logging in...' : 'Registering...') : (isLogin ? 'Login' : 'Register')}
           </button>
