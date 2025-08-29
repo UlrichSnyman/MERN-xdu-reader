@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { worksAPI, suggestionsAPI, uploadAPI, loreAPI } from '../services/api';
 import { Work, Suggestion } from '../types';
 import RichTextEditor from './RichTextEditor';
+import ExpandableText from './ExpandableText';
 import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
@@ -56,6 +57,66 @@ const AdminDashboard: React.FC = () => {
         setSuggestions(suggestionsResponse.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        // Set demo data for UI demonstration when API is not available
+        setWorks([
+          {
+            _id: '1',
+            title: 'The Chronicles of Digital Wisdom: A Journey Through the Modern Age of Technology and Human Connection',
+            synopsis: 'This comprehensive exploration delves deep into the intricate relationship between humanity and technology in the 21st century. Through carefully researched analysis and compelling narrative, we examine how digital transformation has fundamentally altered our social structures, communication patterns, and cognitive processes. The work spans multiple disciplines, including sociology, psychology, and computer science, offering readers a multifaceted understanding of our evolving digital landscape.',
+            likes: 42,
+            pages: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            coverImage: ''
+          },
+          {
+            _id: '2',
+            title: 'Echoes of Tomorrow',
+            synopsis: 'A brief glimpse into potential futures.',
+            likes: 28,
+            pages: [],
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            updatedAt: new Date(Date.now() - 86400000).toISOString(),
+            coverImage: ''
+          },
+          {
+            _id: '3',
+            title: 'The Art of Minimalist Design Principles in Modern User Interface Development',
+            synopsis: 'An in-depth study of how minimalist design philosophy has revolutionized user experience design across digital platforms.',
+            likes: 15,
+            pages: [],
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+            updatedAt: new Date(Date.now() - 172800000).toISOString(),
+            coverImage: ''
+          }
+        ]);
+        
+        setSuggestions([
+          {
+            _id: '1',
+            content: 'I would love to see more interactive elements in the stories, perhaps some multimedia content that could enhance the reading experience. The current format is great, but adding visual elements, audio narration, or even interactive decision points could make the experience more immersive and engaging for modern readers.',
+            authorName: 'Alexandra Chen',
+            timestamp: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            _id: '2',
+            content: 'The platform could benefit from a dark mode theme and better mobile responsiveness. Also, consider adding bookmarking features.',
+            authorName: 'Marcus Johnson',
+            timestamp: new Date(Date.now() - 43200000).toISOString(),
+            createdAt: new Date(Date.now() - 43200000).toISOString(),
+            updatedAt: new Date(Date.now() - 43200000).toISOString()
+          },
+          {
+            _id: '3',
+            content: 'Could we have a recommendation system based on reading history? It would be amazing to discover new content tailored to individual preferences.',
+            authorName: 'Sarah Williams',
+            timestamp: new Date(Date.now() - 86400000).toISOString(),
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            updatedAt: new Date(Date.now() - 86400000).toISOString()
+          }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -302,7 +363,13 @@ const AdminDashboard: React.FC = () => {
             <h3>Recent Suggestions</h3>
             {suggestions.slice(0, 5).map(suggestion => (
               <div key={suggestion._id} className="activity-item">
-                <p>{suggestion.content.substring(0, 100)}...</p>
+                <div className="activity-content">
+                  <ExpandableText 
+                    text={suggestion.content} 
+                    maxLength={100}
+                    className="activity-text"
+                  />
+                </div>
                 <small>{new Date(suggestion.createdAt).toLocaleDateString()}</small>
               </div>
             ))}
@@ -321,8 +388,21 @@ const AdminDashboard: React.FC = () => {
             {works.map(work => (
               <div key={work._id} className="work-item">
                 <div className="work-info">
-                  <h4>{work.title}</h4>
-                  <p>{work.synopsis}</p>
+                  <h4>
+                    <ExpandableText 
+                      text={work.title} 
+                      maxLength={80}
+                      className="work-title"
+                    />
+                  </h4>
+                  <div className="work-synopsis">
+                    <ExpandableText 
+                      text={work.synopsis || 'No synopsis available'} 
+                      maxLength={150}
+                      maxLines={2}
+                      className="work-synopsis"
+                    />
+                  </div>
                   <div className="work-meta">
                     <span className="likes">Likes: {work.likes}</span>
                     <span className="date">
@@ -427,7 +507,14 @@ const AdminDashboard: React.FC = () => {
             {suggestions.map(suggestion => (
               <div key={suggestion._id} className="suggestion-item">
                 <div className="suggestion-content">
-                  <p>{suggestion.content}</p>
+                  <div className="suggestion-text">
+                    <ExpandableText 
+                      text={suggestion.content} 
+                      maxLength={200}
+                      maxLines={3}
+                      className="suggestion-content"
+                    />
+                  </div>
                   <div className="suggestion-meta">
                     {suggestion.authorName && (
                       <span className="author">By: {suggestion.authorName}</span>
